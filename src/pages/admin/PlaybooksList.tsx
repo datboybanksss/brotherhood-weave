@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminPlaybooks, deletePlaybook } from "@/api/admin-playbooks";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminPlaybooksList() {
@@ -17,6 +17,9 @@ export default function AdminPlaybooksList() {
 
   return (
     <div className="p-6 space-y-4">
+      <Button variant="ghost" size="sm" onClick={() => navigate("/me")} className="-ml-2 text-muted-foreground">
+        <ArrowLeft className="mr-1 h-4 w-4" /> Back
+      </Button>
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">Playbooks</h1>
         <Button size="sm" onClick={() => navigate("/admin/playbooks/new")}><Plus className="h-4 w-4 mr-1" /> New</Button>
