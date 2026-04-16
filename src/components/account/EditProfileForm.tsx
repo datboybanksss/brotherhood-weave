@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Camera } from "lucide-react";
+import { Camera, ImagePlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,7 @@ type FormData = z.infer<typeof schema>;
 export default function EditProfileForm({ user }: { user: AppUser }) {
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -58,14 +59,25 @@ export default function EditProfileForm({ user }: { user: AppUser }) {
 
       <div className="space-y-1">
         <Label>Profile photo</Label>
+        <input ref={cameraRef} type="file" accept="image/*" capture="user" className="hidden" onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) avatarMutation.mutate(file);
+        }} />
         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) avatarMutation.mutate(file);
         }} />
-        <Button type="button" variant="outline" className="w-full min-h-[48px] gap-2" disabled={uploading} onClick={() => fileRef.current?.click()}>
-          <Camera className="h-4 w-4" />
-          {uploading ? "Uploading…" : "Upload new photo"}
-        </Button>
+        <div className="flex gap-2">
+          <Button type="button" variant="outline" className="flex-1 min-h-[48px] gap-2" disabled={uploading} onClick={() => cameraRef.current?.click()}>
+            <Camera className="h-4 w-4" />
+            Take a selfie
+          </Button>
+          <Button type="button" variant="outline" className="flex-1 min-h-[48px] gap-2" disabled={uploading} onClick={() => fileRef.current?.click()}>
+            <ImagePlus className="h-4 w-4" />
+            Gallery
+          </Button>
+        </div>
+        {uploading && <p className="text-xs text-muted-foreground text-center">Uploading…</p>}
       </div>
 
       <div className="space-y-1">
