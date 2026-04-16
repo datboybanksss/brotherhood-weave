@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import UserDropdownMenu from "@/components/UserDropdownMenu";
 
 export default function Payment() {
   const { user } = useAuth();
@@ -30,7 +31,10 @@ export default function Payment() {
   });
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4 relative">
+      <div className="absolute top-4 right-4">
+        <UserDropdownMenu />
+      </div>
       <div className="w-full max-w-sm space-y-6">
         <h1 className="text-2xl font-bold text-foreground text-center">Complete Your Membership</h1>
         <div className="rounded-lg border border-border p-6 text-center space-y-4">
