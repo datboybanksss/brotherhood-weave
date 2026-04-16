@@ -1,6 +1,8 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 export default function RouteGuard() {
   const { user, loading: authLoading } = useAuth();
@@ -25,16 +27,29 @@ export default function RouteGuard() {
   // Authenticated but no appUser yet
   if (!appUser) return null;
 
+  // Rejected user — force sign out
+  if (appUser.rejected_at) {
+    supabase.auth.signOut();
+    toast.error("Your application was not approved at this time.");
+    return <Navigate to="/login" replace />;
+  }
+
   const isPaid = appUser.payment_status === "paid";
   const interviewDone = appUser.interview_completed;
 
+  // Admin routes
+  if (location.pathname.startsWith("/admin")) {
+    if (!appUser.is_admin) {
+      toast.error("Access denied.");
+      return <Navigate to="/home" replace />;
+    }
+    return <Outlet />;
+  }
+
   // State 1: pre-payment
   if (!isPaid) {
-    // Can go to payment if interview completed
     if (interviewDone && location.pathname === "/payment") return <Outlet />;
-    // Otherwise must be on interview
     if (location.pathname === "/interview") return <Outlet />;
-    // Redirect to payment if interview done, otherwise interview
     if (interviewDone) return <Navigate to="/payment" replace />;
     return <Navigate to="/interview" replace />;
   }

@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
-const CALENDLY_URL = import.meta.env.VITE_CALENDLY_URL || "https://calendly.com/kgosinoko11/interview";
+const CALENDLY_URL = "https://calendly.com/kgosinoko11/interview";
 
 export default function Interview() {
   const { user } = useAuth();
@@ -14,7 +14,6 @@ export default function Interview() {
 
   const bookMutation = useMutation({
     mutationFn: async () => {
-      console.log("Marking interview booked");
       const { error } = await supabase
         .from("users")
         .update({ interview_booked_at: new Date().toISOString() })
@@ -24,21 +23,6 @@ export default function Interview() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
       toast.success("Interview booking confirmed!");
-    },
-  });
-
-  const completeMutation = useMutation({
-    mutationFn: async () => {
-      console.log("Admin marking interview complete");
-      const { error } = await supabase
-        .from("users")
-        .update({ interview_completed: true })
-        .eq("id", user!.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-      toast.success("Interview marked complete. Proceed to payment.");
     },
   });
 
@@ -66,25 +50,7 @@ export default function Interview() {
           </Button>
         ) : (
           <div className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">
-            ✓ Interview booked. You'll get full access after your interview and payment.
-          </div>
-        )}
-
-        {appUser?.is_admin && !appUser.interview_completed && (
-          <Button
-            variant="outline"
-            onClick={() => completeMutation.mutate()}
-            className="w-full min-h-[48px]"
-            disabled={completeMutation.isPending}
-          >
-            [Admin] Mark Interview Complete
-          </Button>
-        )}
-
-        {appUser?.interview_completed && (
-          <div className="rounded-lg bg-muted p-4 text-center text-sm">
-            ✓ Interview complete!{" "}
-            <a href="/payment" className="text-primary underline">Proceed to payment →</a>
+            Interview booked. After our call, your application will be reviewed. If approved, you'll get access to complete your payment and join the brotherhood. Expect to hear back within 24 hours of the interview.
           </div>
         )}
       </div>
