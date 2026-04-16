@@ -1,0 +1,1 @@
+UPDATE public.modules SET title = '1. dentity Alchemy' WHERE title = 'Identity Alchemy';
