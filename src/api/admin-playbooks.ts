@@ -10,23 +10,26 @@ export async function getAdminPlaybooks() {
   return data;
 }
 
+type PlaybookCategory = "money" | "career" | "relationships" | "health" | "mindset" | "craft";
+
 export async function createPlaybook(values: {
   title: string;
   slug?: string;
   summary: string;
   body_markdown: string;
-  category: string;
+  category: PlaybookCategory;
   author_id: string;
   pdf_attachment_url?: string;
   is_published: boolean;
 }) {
   const baseSlug = values.slug || generateSlug(values.title);
   const slug = await ensureUniqueSlug(baseSlug);
-  const { error } = await supabase.from("playbooks").insert({ ...values, slug });
+  const row = { ...values, slug };
+  const { error } = await supabase.from("playbooks").insert(row);
   if (error) throw error;
 }
 
-export async function updatePlaybook(id: string, values: Record<string, unknown>) {
+export async function updatePlaybook(id: string, values: Parameters<typeof supabase.from<"playbooks">>[0] extends infer _T ? Record<string, unknown> : never) {
   const { error } = await supabase.from("playbooks").update(values).eq("id", id);
   if (error) throw error;
 }

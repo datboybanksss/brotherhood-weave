@@ -20,7 +20,9 @@ export async function ensureUniqueSlug(slug: string, excludeId?: string) {
   }
 }
 
-export async function getPlaybooks(category?: string) {
+type PlaybookCategory = "money" | "career" | "relationships" | "health" | "mindset" | "craft";
+
+export async function getPlaybooks(category?: PlaybookCategory) {
   let query = supabase
     .from("playbooks")
     .select("*, author:author_id(id, full_name, avatar_url, tier_id, tiers(name, ring_color, display_order))")
