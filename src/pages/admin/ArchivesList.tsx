@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminArchives, deleteArchive } from "@/api/admin-archives";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
