@@ -18,6 +18,9 @@ export default function AdminArchivesList() {
 
   return (
     <div className="p-6 space-y-4">
+      <Button variant="ghost" size="sm" onClick={() => navigate("/me")} className="-ml-2 text-muted-foreground">
+        <ArrowLeft className="mr-1 h-4 w-4" /> Back
+      </Button>
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">Archives</h1>
         <Button size="sm" onClick={() => navigate("/admin/archives/new")}><Plus className="h-4 w-4 mr-1" /> New</Button>
