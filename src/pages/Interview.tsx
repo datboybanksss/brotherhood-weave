@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
-const CALENDLY_URL = import.meta.env.VITE_CALENDLY_URL || "https://calendly.com/familyties/interview";
+const CALENDLY_URL = import.meta.env.VITE_CALENDLY_URL || "https://calendly.com/kgosinoko11/interview";
 
 export default function Interview() {
   const { user } = useAuth();
