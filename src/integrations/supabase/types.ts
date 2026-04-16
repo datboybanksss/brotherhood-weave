@@ -14,16 +14,352 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      departments: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      lessons: {
+        Row: {
+          display_order: number
+          id: string
+          module_id: string
+          title: string
+        }
+        Insert: {
+          display_order: number
+          id?: string
+          module_id: string
+          title: string
+        }
+        Update: {
+          display_order?: number
+          id?: string
+          module_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_attendance: {
+        Row: {
+          attended: boolean
+          marked_by: string | null
+          meeting_id: string
+          user_id: string
+        }
+        Insert: {
+          attended?: boolean
+          marked_by?: string | null
+          meeting_id: string
+          user_id: string
+        }
+        Update: {
+          attended?: boolean
+          marked_by?: string | null
+          meeting_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_attendance_marked_by_fkey"
+            columns: ["marked_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_attendance_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_attendance_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meetings: {
+        Row: {
+          created_by: string | null
+          id: string
+          scheduled_at: string
+          title: string
+        }
+        Insert: {
+          created_by?: string | null
+          id?: string
+          scheduled_at: string
+          title: string
+        }
+        Update: {
+          created_by?: string | null
+          id?: string
+          scheduled_at?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      modules: {
+        Row: {
+          description: string | null
+          display_order: number
+          id: string
+          required_tier_id: string | null
+          slug: string
+          title: string
+        }
+        Insert: {
+          description?: string | null
+          display_order: number
+          id?: string
+          required_tier_id?: string | null
+          slug: string
+          title: string
+        }
+        Update: {
+          description?: string | null
+          display_order?: number
+          id?: string
+          required_tier_id?: string | null
+          slug?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modules_required_tier_id_fkey"
+            columns: ["required_tier_id"]
+            isOneToOne: false
+            referencedRelation: "tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          provider: string
+          status: Database["public"]["Enums"]["payment_txn_status"]
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          provider?: string
+          status?: Database["public"]["Enums"]["payment_txn_status"]
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          provider?: string
+          status?: Database["public"]["Enums"]["payment_txn_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tiers: {
+        Row: {
+          display_order: number
+          id: string
+          name: string
+          ring_color: string
+        }
+        Insert: {
+          display_order: number
+          id?: string
+          name: string
+          ring_color: string
+        }
+        Update: {
+          display_order?: number
+          id?: string
+          name?: string
+          ring_color?: string
+        }
+        Relationships: []
+      }
+      user_departments: {
+        Row: {
+          department_id: string
+          is_primary: boolean
+          user_id: string
+        }
+        Insert: {
+          department_id: string
+          is_primary?: boolean
+          user_id: string
+        }
+        Update: {
+          department_id?: string
+          is_primary?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_departments_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_departments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_module_progress: {
+        Row: {
+          completed_at: string | null
+          id: string
+          lessons_completed: number
+          module_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          lessons_completed?: number
+          module_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          lessons_completed?: number
+          module_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_module_progress_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_module_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          interview_booked_at: string | null
+          interview_completed: boolean
+          is_admin: boolean
+          membership_started_at: string | null
+          payment_status: Database["public"]["Enums"]["payment_status_enum"]
+          tier_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id: string
+          interview_booked_at?: string | null
+          interview_completed?: boolean
+          is_admin?: boolean
+          membership_started_at?: string | null
+          payment_status?: Database["public"]["Enums"]["payment_status_enum"]
+          tier_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          interview_booked_at?: string | null
+          interview_completed?: boolean
+          is_admin?: boolean
+          membership_started_at?: string | null
+          payment_status?: Database["public"]["Enums"]["payment_status_enum"]
+          tier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      evaluate_tier_upgrade: { Args: { target_user_id: string }; Returns: Json }
+      process_payment: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      payment_status_enum: "pending" | "paid"
+      payment_txn_status: "pending" | "completed" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +486,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      payment_status_enum: ["pending", "paid"],
+      payment_txn_status: ["pending", "completed", "failed"],
+    },
   },
 } as const
