@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      archives: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_published: boolean
+          recorded_at: string
+          recording_url: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          recorded_at: string
+          recording_url: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          recorded_at?: string
+          recording_url?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "archives_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           id: string
@@ -34,22 +75,34 @@ export type Database = {
       }
       lessons: {
         Row: {
+          body_markdown: string | null
           display_order: number
+          duration_seconds: number | null
           id: string
           module_id: string
           title: string
+          video_url: string | null
+          worksheet_pdf_url: string | null
         }
         Insert: {
+          body_markdown?: string | null
           display_order: number
+          duration_seconds?: number | null
           id?: string
           module_id: string
           title: string
+          video_url?: string | null
+          worksheet_pdf_url?: string | null
         }
         Update: {
+          body_markdown?: string | null
           display_order?: number
+          duration_seconds?: number | null
           id?: string
           module_id?: string
           title?: string
+          video_url?: string | null
+          worksheet_pdf_url?: string | null
         }
         Relationships: [
           {
@@ -203,6 +256,59 @@ export type Database = {
           },
         ]
       }
+      playbooks: {
+        Row: {
+          author_id: string
+          body_markdown: string
+          category: Database["public"]["Enums"]["playbook_category"]
+          created_at: string
+          id: string
+          is_published: boolean
+          last_reviewed_at: string
+          pdf_attachment_url: string | null
+          slug: string
+          summary: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body_markdown: string
+          category: Database["public"]["Enums"]["playbook_category"]
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          last_reviewed_at?: string
+          pdf_attachment_url?: string | null
+          slug: string
+          summary: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body_markdown?: string
+          category?: Database["public"]["Enums"]["playbook_category"]
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          last_reviewed_at?: string
+          pdf_attachment_url?: string | null
+          slug?: string
+          summary?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playbooks_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tiers: {
         Row: {
           display_order: number
@@ -250,6 +356,42 @@ export type Database = {
           },
           {
             foreignKeyName: "user_departments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_lesson_progress: {
+        Row: {
+          completed_at: string | null
+          id: string
+          lesson_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          lesson_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          lesson_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_lesson_progress_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -364,6 +506,13 @@ export type Database = {
     Enums: {
       payment_status_enum: "pending" | "paid"
       payment_txn_status: "pending" | "completed" | "failed"
+      playbook_category:
+        | "money"
+        | "career"
+        | "relationships"
+        | "health"
+        | "mindset"
+        | "craft"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -493,6 +642,14 @@ export const Constants = {
     Enums: {
       payment_status_enum: ["pending", "paid"],
       payment_txn_status: ["pending", "completed", "failed"],
+      playbook_category: [
+        "money",
+        "career",
+        "relationships",
+        "health",
+        "mindset",
+        "craft",
+      ],
     },
   },
 } as const
