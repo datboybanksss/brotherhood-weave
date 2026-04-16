@@ -4,6 +4,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 
 const CALENDLY_URL = "https://calendly.com/kgosinoko11/interview";
 
