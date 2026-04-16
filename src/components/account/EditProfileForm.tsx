@@ -20,6 +20,7 @@ type FormData = z.infer<typeof schema>;
 export default function EditProfileForm({ user }: { user: AppUser }) {
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
