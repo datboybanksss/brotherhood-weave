@@ -29,7 +29,8 @@ export async function createPlaybook(values: {
   if (error) throw error;
 }
 
-export async function updatePlaybook(id: string, values: Parameters<typeof supabase.from<"playbooks">>[0] extends infer _T ? Record<string, unknown> : never) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updatePlaybook(id: string, values: any) {
   const { error } = await supabase.from("playbooks").update(values).eq("id", id);
   if (error) throw error;
 }
