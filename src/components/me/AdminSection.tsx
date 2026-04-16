@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { ClipboardCheck, Archive, BookOpen } from "lucide-react";
+import { ClipboardCheck, Archive, BookOpen, Layers } from "lucide-react";
 
 const links = [
   { label: "Approvals", path: "/admin/approvals", icon: ClipboardCheck },
+  { label: "Modules", path: "/admin/modules", icon: Layers },
   { label: "Archives", path: "/admin/archives", icon: Archive },
   { label: "Playbooks", path: "/admin/playbooks", icon: BookOpen },
 ];

@@ -23,6 +23,9 @@ import AdminArchivesList from "@/pages/admin/ArchivesList";
 import ArchiveForm from "@/pages/admin/ArchiveForm";
 import AdminPlaybooksList from "@/pages/admin/PlaybooksList";
 import PlaybookForm from "@/pages/admin/PlaybookForm";
+import AdminModulesList from "@/pages/admin/ModulesList";
+import ModuleForm from "@/pages/admin/ModuleForm";
+import LessonForm from "@/pages/admin/LessonForm";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +50,11 @@ const App = () => (
               <Route path="/admin/playbooks" element={<AdminPlaybooksList />} />
               <Route path="/admin/playbooks/new" element={<PlaybookForm />} />
               <Route path="/admin/playbooks/:id/edit" element={<PlaybookForm />} />
+              <Route path="/admin/modules" element={<AdminModulesList />} />
+              <Route path="/admin/modules/new" element={<ModuleForm />} />
+              <Route path="/admin/modules/:id/edit" element={<ModuleForm />} />
+              <Route path="/admin/modules/:moduleId/lessons/new" element={<LessonForm />} />
+              <Route path="/admin/modules/:moduleId/lessons/:lessonId/edit" element={<LessonForm />} />
               <Route element={<PaidLayout />}>
                 <Route path="/home" element={<Home />} />
                 <Route path="/library" element={<Library />} />
