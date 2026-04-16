@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PdfUploadField from "@/components/admin/PdfUploadField";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -83,6 +84,9 @@ export default function PlaybookForm() {
 
   return (
     <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="p-6 space-y-4 max-w-lg">
+      <Button type="button" variant="ghost" size="sm" onClick={() => navigate("/admin/playbooks")} className="-ml-2 text-muted-foreground">
+        <ArrowLeft className="mr-1 h-4 w-4" /> Back
+      </Button>
       <h1 className="text-xl font-bold text-foreground">{isEdit ? "Edit" : "New"} Playbook</h1>
 
       <div className="space-y-2">

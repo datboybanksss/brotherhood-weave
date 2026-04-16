@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 interface FormValues {
@@ -60,6 +61,9 @@ export default function ArchiveForm() {
 
   return (
     <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="p-6 space-y-4 max-w-lg">
+      <Button type="button" variant="ghost" size="sm" onClick={() => navigate("/admin/archives")} className="-ml-2 text-muted-foreground">
+        <ArrowLeft className="mr-1 h-4 w-4" /> Back
+      </Button>
       <h1 className="text-xl font-bold text-foreground">{isEdit ? "Edit" : "New"} Archive</h1>
       <div className="space-y-2">
         <Label>Title</Label>
