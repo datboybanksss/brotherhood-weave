@@ -3,7 +3,7 @@ import { Settings } from "lucide-react";
 import ProfileHeader from "@/components/me/ProfileHeader";
 import TierProgressChecklist from "@/components/me/TierProgressChecklist";
 import DepartmentSelector from "@/components/me/DepartmentSelector";
-import AdminLink from "@/components/me/AdminLink";
+import AdminSection from "@/components/me/AdminSection";
 import SignOutButton from "@/components/me/SignOutButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
@@ -25,7 +25,7 @@ export default function Me() {
       <ProfileHeader />
       {showProgress && <TierProgressChecklist />}
       <DepartmentSelector />
-      <AdminLink />
+      <AdminSection />
       <SignOutButton />
     </div>
   );

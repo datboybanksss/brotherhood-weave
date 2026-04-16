@@ -12,9 +12,17 @@ import Payment from "@/pages/Payment";
 import Account from "@/pages/Account";
 import Home from "@/pages/Home";
 import Library from "@/pages/Library";
+import ModuleDetail from "@/pages/ModuleDetail";
+import LessonReader from "@/pages/LessonReader";
+import ArchiveDetail from "@/pages/ArchiveDetail";
+import PlaybookDetail from "@/pages/PlaybookDetail";
 import Brotherhood from "@/pages/Brotherhood";
 import Me from "@/pages/Me";
 import Approvals from "@/pages/admin/Approvals";
+import AdminArchivesList from "@/pages/admin/ArchivesList";
+import ArchiveForm from "@/pages/admin/ArchiveForm";
+import AdminPlaybooksList from "@/pages/admin/PlaybooksList";
+import PlaybookForm from "@/pages/admin/PlaybookForm";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,9 +41,19 @@ const App = () => (
               <Route path="/payment" element={<Payment />} />
               <Route path="/account" element={<Account />} />
               <Route path="/admin/approvals" element={<Approvals />} />
+              <Route path="/admin/archives" element={<AdminArchivesList />} />
+              <Route path="/admin/archives/new" element={<ArchiveForm />} />
+              <Route path="/admin/archives/:id/edit" element={<ArchiveForm />} />
+              <Route path="/admin/playbooks" element={<AdminPlaybooksList />} />
+              <Route path="/admin/playbooks/new" element={<PlaybookForm />} />
+              <Route path="/admin/playbooks/:id/edit" element={<PlaybookForm />} />
               <Route element={<PaidLayout />}>
                 <Route path="/home" element={<Home />} />
                 <Route path="/library" element={<Library />} />
+                <Route path="/library/module/:slug" element={<ModuleDetail />} />
+                <Route path="/library/module/:moduleSlug/lesson/:lessonIndex" element={<LessonReader />} />
+                <Route path="/library/archive/:id" element={<ArchiveDetail />} />
+                <Route path="/library/playbook/:slug" element={<PlaybookDetail />} />
                 <Route path="/brotherhood" element={<Brotherhood />} />
                 <Route path="/me" element={<Me />} />
               </Route>

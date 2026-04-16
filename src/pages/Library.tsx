@@ -1,40 +1,28 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import ModuleCard from "@/components/library/ModuleCard";
+import { useSearchParams } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CoreList from "@/components/library/CoreList";
+import ArchivesList from "@/components/library/ArchivesList";
+import PlaybooksList from "@/components/library/PlaybooksList";
+
+const LAYERS = ["core", "archives", "playbooks"] as const;
 
 export default function Library() {
-  const { data: appUser } = useCurrentUser();
-
-  const { data: modules } = useQuery({
-    queryKey: ["modules"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("modules")
-        .select("*, tiers:required_tier_id(name, display_order)")
-        .order("display_order");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const userTierOrder = appUser?.tiers?.display_order ?? 0;
+  const [params, setParams] = useSearchParams();
+  const layer = LAYERS.includes(params.get("layer") as any) ? params.get("layer")! : "core";
 
   return (
     <div className="p-6 space-y-4">
       <h1 className="text-xl font-bold text-foreground">Library</h1>
-      {modules?.map((mod) => {
-        const requiredOrder = (mod.tiers as unknown as { display_order: number } | null)?.display_order ?? 0;
-        const locked = userTierOrder < requiredOrder;
-        return (
-          <ModuleCard
-            key={mod.id}
-            title={mod.title}
-            description={mod.description ?? ""}
-            locked={locked}
-          />
-        );
-      })}
+      <Tabs value={layer} onValueChange={(v) => setParams({ layer: v })}>
+        <TabsList className="w-full">
+          <TabsTrigger value="core" className="flex-1">The Core</TabsTrigger>
+          <TabsTrigger value="archives" className="flex-1">The Archives</TabsTrigger>
+          <TabsTrigger value="playbooks" className="flex-1">The Playbooks</TabsTrigger>
+        </TabsList>
+        <TabsContent value="core"><CoreList /></TabsContent>
+        <TabsContent value="archives"><ArchivesList /></TabsContent>
+        <TabsContent value="playbooks"><PlaybooksList /></TabsContent>
+      </Tabs>
     </div>
   );
 }
