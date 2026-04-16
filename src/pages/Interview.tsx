@@ -54,6 +54,17 @@ export default function Interview() {
             Interview booked. After our call, your application will be reviewed. If approved, you'll get access to complete your payment and join the brotherhood. Expect to hear back within 24 hours of the interview.
           </div>
         )}
+
+        <button
+          onClick={async () => {
+            await supabase.auth.signOut();
+            window.location.href = "/login";
+          }}
+          className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign out
+        </button>
       </div>
     </div>
   );
