@@ -4,6 +4,9 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
+const PUBLIC_PATHS = ["/login", "/signup"];
+const ALWAYS_ALLOWED_AUTHENTICATED = ["/account"];
+
 export default function RouteGuard() {
   const { user, loading: authLoading } = useAuth();
   const { data: appUser, isLoading: userLoading } = useCurrentUser();
@@ -17,22 +20,21 @@ export default function RouteGuard() {
     );
   }
 
-  // Not authenticated
   if (!user) {
-    const publicPaths = ["/login", "/signup"];
-    if (publicPaths.includes(location.pathname)) return <Outlet />;
+    if (PUBLIC_PATHS.includes(location.pathname)) return <Outlet />;
     return <Navigate to="/login" replace />;
   }
 
-  // Authenticated but no appUser yet
   if (!appUser) return null;
 
-  // Rejected user — force sign out
   if (appUser.rejected_at) {
     supabase.auth.signOut();
     toast.error("Your application was not approved at this time.");
     return <Navigate to="/login" replace />;
   }
+
+  // Always-allowed routes for any authenticated user
+  if (ALWAYS_ALLOWED_AUTHENTICATED.includes(location.pathname)) return <Outlet />;
 
   const isPaid = appUser.payment_status === "paid";
   const interviewDone = appUser.interview_completed;
@@ -55,8 +57,9 @@ export default function RouteGuard() {
   }
 
   // State 2 & 3: paid members
-  const publicPaths = ["/login", "/signup", "/interview", "/payment"];
-  if (publicPaths.includes(location.pathname)) return <Navigate to="/home" replace />;
+  if (PUBLIC_PATHS.includes(location.pathname) || ["/interview", "/payment"].includes(location.pathname)) {
+    return <Navigate to="/home" replace />;
+  }
 
   return <Outlet />;
 }

@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import UserDropdownMenu from "@/components/UserDropdownMenu";
 
 const CALENDLY_URL = "https://calendly.com/kgosinoko11/interview";
 
@@ -12,6 +13,7 @@ export default function Interview() {
   const { user } = useAuth();
   const { data: appUser } = useCurrentUser();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const bookMutation = useMutation({
     mutationFn: async () => {
@@ -28,7 +30,10 @@ export default function Interview() {
   });
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4 relative">
+      <div className="absolute top-4 right-4">
+        <UserDropdownMenu />
+      </div>
       <div className="w-full max-w-sm space-y-6">
         <h1 className="text-2xl font-bold text-foreground text-center">Book Your Interview</h1>
 
@@ -50,21 +55,15 @@ export default function Interview() {
             I've Booked My Interview
           </Button>
         ) : (
-          <div className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">
-            Interview booked. After our call, your application will be reviewed. If approved, you'll get access to complete your payment and join the brotherhood. Expect to hear back within 24 hours of the interview.
+          <div className="space-y-3">
+            <div className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">
+              Interview booked. We'll review your application after our call and get back to you within 24 hours. You can check your status anytime on your Account page.
+            </div>
+            <Button variant="outline" className="w-full min-h-[48px]" onClick={() => navigate("/account")}>
+              View my status
+            </Button>
           </div>
         )}
-
-        <button
-          onClick={async () => {
-            await supabase.auth.signOut();
-            window.location.href = "/login";
-          }}
-          className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto"
-        >
-          <LogOut className="h-4 w-4" />
-          Sign out
-        </button>
       </div>
     </div>
   );
