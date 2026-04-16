@@ -18,7 +18,7 @@ interface Props {
     summary: string;
     category: string;
     last_reviewed_at: string;
-    author: { full_name: string; avatar_url: string | null; tiers: { ring_color: string } | null } | null;
+    author: { id: string; full_name: string } | null;
   };
 }
 
@@ -38,12 +38,7 @@ export default function PlaybookCard({ playbook }: Props) {
       <p className="text-xs text-muted-foreground line-clamp-3 flex-1">{playbook.summary}</p>
       {playbook.author && (
         <div className="flex items-center gap-1.5 mt-auto">
-          <Avatar
-            src={playbook.author.avatar_url}
-            fallbackName={playbook.author.full_name}
-            ringColor={playbook.author.tiers?.ring_color}
-            size="sm"
-          />
+          <Avatar userId={playbook.author.id} size="sm" />
           <span className="text-[10px] text-muted-foreground truncate">{playbook.author.full_name}</span>
         </div>
       )}
