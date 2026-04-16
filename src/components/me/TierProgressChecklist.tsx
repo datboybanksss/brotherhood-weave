@@ -12,7 +12,7 @@ export default function TierProgressChecklist() {
     },
     {
       done: progress.moduleCompleted,
-      label: "Complete 1. dentity Alchemy",
+      label: "Complete 1. Identity Alchemy",
     },
     {
       done: progress.departmentCount >= 1,
