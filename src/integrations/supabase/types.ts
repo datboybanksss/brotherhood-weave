@@ -308,6 +308,7 @@ export type Database = {
           is_admin: boolean
           membership_started_at: string | null
           payment_status: Database["public"]["Enums"]["payment_status_enum"]
+          rejected_at: string | null
           tier_id: string | null
         }
         Insert: {
@@ -321,6 +322,7 @@ export type Database = {
           is_admin?: boolean
           membership_started_at?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status_enum"]
+          rejected_at?: string | null
           tier_id?: string | null
         }
         Update: {
@@ -334,6 +336,7 @@ export type Database = {
           is_admin?: boolean
           membership_started_at?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status_enum"]
+          rejected_at?: string | null
           tier_id?: string | null
         }
         Relationships: [
@@ -352,6 +355,7 @@ export type Database = {
     }
     Functions: {
       evaluate_tier_upgrade: { Args: { target_user_id: string }; Returns: Json }
+      is_current_user_admin: { Args: never; Returns: boolean }
       process_payment: {
         Args: { p_amount: number; p_user_id: string }
         Returns: undefined

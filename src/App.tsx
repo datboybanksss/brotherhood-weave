@@ -13,6 +13,7 @@ import Home from "@/pages/Home";
 import Library from "@/pages/Library";
 import Brotherhood from "@/pages/Brotherhood";
 import Me from "@/pages/Me";
+import Approvals from "@/pages/admin/Approvals";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/interview" element={<Interview />} />
               <Route path="/payment" element={<Payment />} />
+              <Route path="/admin/approvals" element={<Approvals />} />
               <Route element={<PaidLayout />}>
                 <Route path="/home" element={<Home />} />
                 <Route path="/library" element={<Library />} />

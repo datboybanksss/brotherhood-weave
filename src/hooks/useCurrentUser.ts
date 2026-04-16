@@ -13,6 +13,7 @@ export interface AppUser {
   interview_booked_at: string | null;
   interview_completed: boolean;
   is_admin: boolean;
+  rejected_at: string | null;
   created_at: string;
   tiers: { name: string; ring_color: string; display_order: number } | null;
 }
