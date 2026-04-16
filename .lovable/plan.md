@@ -1,80 +1,23 @@
 
 
-## Revised Plan: /account page, status tracker, and protected-columns trigger
+## Plan: Add camera capture option for avatar upload
 
-Everything from the previous plan remains the same, with one critical refinement to the trigger design based on your verification request.
+**What**: Allow users to take a selfie directly from the avatar upload button on mobile devices, in addition to choosing an existing photo.
 
-### Trigger design (refined)
+**How**: This is a one-line change. The existing file input already has `accept="image/*"`. On mobile browsers, changing this to `accept="image/*" capture="user"` would force camera-only. But the better UX is to keep `accept="image/*"` and add `capture="environment"` as a separate option — or simply rely on the browser's native behavior.
 
-The BEFORE UPDATE trigger on `users` that guards protected columns will include two bypass conditions:
+Actually, the simplest and best approach: the current `accept="image/*"` already prompts mobile users to choose between Camera and Photo Library on both iOS and Android. No code change needed for that.
 
-1. **Admin bypass**: If `is_current_user_admin()` returns true, allow all column changes.
-2. **SECURITY DEFINER bypass**: If `current_setting('role') != 'authenticated'`, skip the check. This ensures `process_payment` (which sets `payment_status`, `tier_id`, `membership_started_at`) and `evaluate_tier_upgrade` (which sets `tier_id`) continue working — both are SECURITY DEFINER functions that execute with elevated privileges, not as the `authenticated` role.
+However, we can improve the UX by splitting into two clear buttons:
 
-```sql
-CREATE OR REPLACE FUNCTION protect_user_columns()
-RETURNS trigger LANGUAGE plpgsql AS $$
-BEGIN
-  -- Skip for non-authenticated contexts (SECURITY DEFINER functions)
-  IF current_setting('request.jwt.claim.role', true) IS DISTINCT FROM 'authenticated' THEN
-    RETURN NEW;
-  END IF;
-  -- Skip for admins
-  IF is_current_user_admin() THEN
-    RETURN NEW;
-  END IF;
-  -- Block protected column changes for regular users
-  IF NEW.tier_id IS DISTINCT FROM OLD.tier_id
-    OR NEW.payment_status IS DISTINCT FROM OLD.payment_status
-    OR NEW.interview_completed IS DISTINCT FROM OLD.interview_completed
-    OR NEW.is_admin IS DISTINCT FROM OLD.is_admin
-    OR NEW.membership_started_at IS DISTINCT FROM OLD.membership_started_at
-    OR NEW.rejected_at IS DISTINCT FROM OLD.rejected_at
-  THEN
-    RAISE EXCEPTION 'Cannot modify protected columns';
-  END IF;
-  RETURN NEW;
-END;
-$$;
-```
+**Changes to `src/components/account/EditProfileForm.tsx`**:
+- Add a second file input with `capture="user"` (front-facing camera) for a dedicated "Take a selfie" button
+- Keep the existing "Upload photo" button for gallery selection
+- Both feed into the same `avatarMutation`
 
-This satisfies all three scenarios:
-- **process_payment RPC**: runs as definer, JWT role claim absent → bypassed ✓
-- **Admin approval** (client-side `update interview_completed`): admin check passes → bypassed ✓
-- **Non-admin tries `SET is_admin = true`**: both checks fail → exception thrown ✓
+Two buttons:
+1. **📷 Take a selfie** — opens front camera directly (`capture="user"`)
+2. **🖼 Upload from gallery** — opens file picker (current behavior)
 
-### Smoke test additions
-
-Added to step 7:
-- **7h.** As a non-admin test user, open browser console and run: `supabase.from('users').update({ is_admin: true }).eq('id', '<own-id>')` → confirm error "Cannot modify protected columns".
-- **7i.** As the same test user, complete payment via the stub button → confirm `process_payment` succeeds (proving the SECURITY DEFINER bypass works).
-
-### Everything else unchanged
-
-- Edge Function `delete_account`
-- RouteGuard refactor with `ALWAYS_ALLOWED_AUTHENTICATED`
-- /account page with all sub-components (ProfileHeader, StatusTracker, EditProfileForm, DangerZone, DeleteAccountDialog)
-- Entry points: UserDropdownMenu on /interview and /payment, "Account settings" on Me tab
-- /interview copy update with "View my status" link
-
-### Files to create
-- `supabase/functions/delete_account/index.ts`
-- `src/pages/Account.tsx`
-- `src/components/account/AccountProfileHeader.tsx`
-- `src/components/account/StatusTracker.tsx`
-- `src/components/account/StatusStep.tsx`
-- `src/components/account/MembershipInfo.tsx`
-- `src/components/account/EditProfileForm.tsx`
-- `src/components/account/DangerZone.tsx`
-- `src/components/account/DeleteAccountDialog.tsx`
-- `src/api/account.ts`
-- `src/components/UserDropdownMenu.tsx`
-
-### Files to modify
-- New migration for `protect_user_columns` trigger
-- `src/components/RouteGuard.tsx`
-- `src/App.tsx`
-- `src/pages/Interview.tsx`
-- `src/pages/Payment.tsx`
-- `src/pages/Me.tsx`
+This works natively on mobile browsers with zero external libraries. On desktop, both will fall back to the file picker.
 
