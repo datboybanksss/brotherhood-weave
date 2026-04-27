@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { getPublicMemberById, getMemberDepartments } from "@/api/members";
 import PublicProfileHeader from "@/components/member/PublicProfileHeader";
 import BioCard from "@/components/member/BioCard";
+import LatestRunCard from "@/components/member/LatestRunCard";
 import { Badge } from "@/components/ui/badge";
 
 export default function MemberProfile() {
@@ -58,6 +59,7 @@ export default function MemberProfile() {
           </div>
         </div>
       )}
+      <LatestRunCard userId={member.id} />
     </div>
   );
 }

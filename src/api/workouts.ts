@@ -52,3 +52,27 @@ export async function getCollectiveDistance(): Promise<number> {
   if (error) throw error;
   return Number(data ?? 0);
 }
+
+export interface LatestRun {
+  id: string;
+  distance_km: number;
+  ran_at: string;
+  note: string | null;
+  verified_via: "strava" | "manual" | null;
+  activity_type: string | null;
+  created_at: string;
+}
+
+export async function getLatestRunForMember(userId: string): Promise<LatestRun | null> {
+  const { data, error } = await supabase
+    .from("workouts")
+    .select("id, distance_km, ran_at, note, verified_via, activity_type, created_at")
+    .eq("user_id", userId)
+    .order("ran_at", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return { ...data, distance_km: Number(data.distance_km) } as LatestRun;
+}
