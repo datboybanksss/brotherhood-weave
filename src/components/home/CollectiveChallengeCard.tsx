@@ -1,14 +1,46 @@
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, RefreshCw, Activity } from "lucide-react";
+import { toast } from "sonner";
 import CircularProgress from "./CircularProgress";
 import LogRunDialog from "./LogRunDialog";
 import RecentRunsFeed from "./RecentRunsFeed";
 import { useCollectiveProgress } from "@/hooks/useCollectiveProgress";
+import { useStravaConnection } from "@/hooks/useStravaConnection";
+import { useVerifiedCounts } from "@/hooks/useVerifiedCounts";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { GOAL_KM } from "@/lib/fitness-constants";
+import { buildStravaAuthorizeUrl, triggerStravaSync } from "@/api/strava";
 
 export default function CollectiveChallengeCard() {
   const { totalKm, daysRemaining } = useCollectiveProgress();
+  const { connection } = useStravaConnection();
+  const { data: user } = useCurrentUser();
+  const { total, verified } = useVerifiedCounts();
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+
+  const onConnect = () => {
+    if (!user) return;
+    const nonce = crypto.randomUUID();
+    sessionStorage.setItem("strava_oauth_nonce", nonce);
+    window.location.assign(buildStravaAuthorizeUrl(user.id, nonce));
+  };
+
+  const onSync = async () => {
+    setBusy(true);
+    const { data, error } = await triggerStravaSync();
+    setBusy(false);
+    if (error) { toast.error(`Sync failed: ${error.message}`); return; }
+    toast.success(`Imported ${data?.imported ?? 0}, skipped ${data?.skipped ?? 0}.`);
+    qc.invalidateQueries({ queryKey: ["recentWorkouts"] });
+    qc.invalidateQueries({ queryKey: ["collectiveDistance"] });
+    qc.invalidateQueries({ queryKey: ["workoutVerifiedCounts"] });
+    qc.invalidateQueries({ queryKey: ["stravaConnection"] });
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -20,8 +52,24 @@ export default function CollectiveChallengeCard() {
           {daysRemaining > 0 && (
             <div className="text-xs text-muted-foreground mt-2">{daysRemaining} days remaining</div>
           )}
+          {verified > 0 && (
+            <div className="text-xs text-muted-foreground mt-1">{verified} of {total} verified via Strava</div>
+          )}
         </div>
-        <LogRunDialog trigger={<Button className="w-full"><Plus className="w-4 h-4 mr-2" />Log a run</Button>} />
+        <div className="space-y-2">
+          {connection ? (
+            <Button className="w-full" onClick={onSync} disabled={busy}>
+              <RefreshCw className={`w-4 h-4 mr-2 ${busy ? "animate-spin" : ""}`} /> Sync from Strava
+            </Button>
+          ) : (
+            <Button className="w-full" onClick={onConnect}>
+              <Activity className="w-4 h-4 mr-2" /> Connect Strava
+            </Button>
+          )}
+          <LogRunDialog trigger={
+            <Button variant="outline" className="w-full"><Plus className="w-4 h-4 mr-2" />Log a run manually</Button>
+          } />
+        </div>
         <div>
           <div className="text-sm font-medium mb-2">Latest from the brotherhood</div>
           <RecentRunsFeed />
