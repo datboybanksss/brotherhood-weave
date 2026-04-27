@@ -20,7 +20,7 @@ const schema = z.object({
   ran_at: z.date(),
   note: z.string().max(200).optional(),
 });
-type FormData = z.infer<typeof schema>;
+type FormData = { distance_km: number; ran_at: Date; note?: string };
 
 const MIN_DATE = new Date("2026-01-01");
 
@@ -28,7 +28,7 @@ export default function LogRunDialog({ trigger }: { trigger: React.ReactNode }) 
   const [open, setOpen] = useState(false);
   const qc = useQueryClient();
   const form = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: { distance_km: undefined as any, ran_at: new Date(), note: "" },
   });
   const noteValue = form.watch("note") ?? "";
