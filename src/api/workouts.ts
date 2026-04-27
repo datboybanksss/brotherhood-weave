@@ -13,6 +13,10 @@ export interface RecentWorkout {
   ran_at: string;
   note: string | null;
   created_at: string;
+  verified_via: "strava" | "manual" | null;
+  strava_activity_id: number | null;
+  activity_type: string | null;
+  duration_seconds: number | null;
   users: { full_name: string } | null;
 }
 
@@ -36,7 +40,7 @@ export async function logWorkout(input: WorkoutInput) {
 export async function getRecentWorkouts(limit = 5): Promise<RecentWorkout[]> {
   const { data, error } = await supabase
     .from("workouts")
-    .select("id, user_id, distance_km, ran_at, note, created_at, users!user_id(full_name)")
+    .select("id, user_id, distance_km, ran_at, note, created_at, verified_via, strava_activity_id, activity_type, duration_seconds, users!user_id(full_name)")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;

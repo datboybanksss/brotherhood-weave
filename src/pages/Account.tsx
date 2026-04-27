@@ -1,15 +1,43 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import AccountProfileHeader from "@/components/account/AccountProfileHeader";
 import StatusTracker from "@/components/account/StatusTracker";
 import MembershipInfo from "@/components/account/MembershipInfo";
 import EditProfileForm from "@/components/account/EditProfileForm";
+import StravaConnection from "@/components/account/StravaConnection";
 import DangerZone from "@/components/account/DangerZone";
 
 export default function Account() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const qc = useQueryClient();
   const { data: appUser } = useCurrentUser();
+
+  useEffect(() => {
+    const status = params.get("strava");
+    if (!status) return;
+    if (status === "connected") {
+      const expected = sessionStorage.getItem("strava_oauth_nonce");
+      const got = params.get("nonce");
+      sessionStorage.removeItem("strava_oauth_nonce");
+      if (expected && got && expected === got) {
+        toast.success("Strava connected!");
+        qc.invalidateQueries({ queryKey: ["stravaConnection"] });
+      } else {
+        toast.error("Strava connection rejected: state mismatch.");
+      }
+    } else if (status === "denied") {
+      toast("Strava connection cancelled.");
+    } else if (status === "error") {
+      toast.error(`Strava connection failed: ${params.get("reason") ?? "unknown"}`);
+    }
+    navigate("/account", { replace: true });
+  }, [params, navigate, qc]);
+
   if (!appUser) return null;
 
   const showTracker = appUser.payment_status !== "paid";
@@ -24,6 +52,7 @@ export default function Account() {
         {showTracker && <StatusTracker user={appUser} />}
         <MembershipInfo user={appUser} />
         <EditProfileForm user={appUser} />
+        <StravaConnection />
         <DangerZone />
       </div>
     </div>

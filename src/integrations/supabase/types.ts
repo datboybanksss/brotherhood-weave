@@ -629,6 +629,96 @@ export type Database = {
           },
         ]
       }
+      strava_connections: {
+        Row: {
+          access_token: string
+          connected_at: string
+          expires_at: string
+          last_synced_at: string | null
+          refresh_token: string
+          scope: string
+          strava_athlete_id: number
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          connected_at?: string
+          expires_at: string
+          last_synced_at?: string | null
+          refresh_token: string
+          scope: string
+          strava_athlete_id: number
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          connected_at?: string
+          expires_at?: string
+          last_synced_at?: string | null
+          refresh_token?: string
+          scope?: string
+          strava_athlete_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strava_connections_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strava_connections_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      strava_webhook_events: {
+        Row: {
+          aspect_type: string
+          error_message: string | null
+          event_time: number | null
+          id: string
+          object_id: number
+          object_type: string
+          owner_id: number
+          processed_at: string | null
+          raw_body: Json
+          received_at: string
+          subscription_id: number | null
+        }
+        Insert: {
+          aspect_type: string
+          error_message?: string | null
+          event_time?: number | null
+          id?: string
+          object_id: number
+          object_type: string
+          owner_id: number
+          processed_at?: string | null
+          raw_body: Json
+          received_at?: string
+          subscription_id?: number | null
+        }
+        Update: {
+          aspect_type?: string
+          error_message?: string | null
+          event_time?: number | null
+          id?: string
+          object_id?: number
+          object_type?: string
+          owner_id?: number
+          processed_at?: string | null
+          raw_body?: Json
+          received_at?: string
+          subscription_id?: number | null
+        }
+        Relationships: []
+      }
       tiers: {
         Row: {
           display_order: number
@@ -837,28 +927,40 @@ export type Database = {
       }
       workouts: {
         Row: {
+          activity_type: string | null
           created_at: string
           distance_km: number
+          duration_seconds: number | null
           id: string
           note: string | null
           ran_at: string
+          strava_activity_id: number | null
           user_id: string
+          verified_via: string | null
         }
         Insert: {
+          activity_type?: string | null
           created_at?: string
           distance_km: number
+          duration_seconds?: number | null
           id?: string
           note?: string | null
           ran_at: string
+          strava_activity_id?: number | null
           user_id: string
+          verified_via?: string | null
         }
         Update: {
+          activity_type?: string | null
           created_at?: string
           distance_km?: number
+          duration_seconds?: number | null
           id?: string
           note?: string | null
           ran_at?: string
+          strava_activity_id?: number | null
           user_id?: string
+          verified_via?: string | null
         }
         Relationships: [
           {
