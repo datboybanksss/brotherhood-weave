@@ -28,6 +28,8 @@ import ModuleForm from "@/pages/admin/ModuleForm";
 import LessonForm from "@/pages/admin/LessonForm";
 import AdminPairings from "@/pages/admin/Pairings";
 import MemberProfile from "@/pages/MemberProfile";
+import Communities from "@/pages/Communities";
+import ChannelView from "@/pages/ChannelView";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +42,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route element={<RouteGuard />}>
+              <Route path="/" element={<Navigate to="/home" replace />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/login" element={<Login />} />
               <Route path="/interview" element={<Interview />} />
@@ -66,11 +69,12 @@ const App = () => (
                 <Route path="/library/archive/:id" element={<ArchiveDetail />} />
                 <Route path="/library/playbook/:slug" element={<PlaybookDetail />} />
                 <Route path="/brotherhood" element={<Brotherhood />} />
+                <Route path="/communities" element={<Communities />} />
+                <Route path="/communities/:slug" element={<ChannelView />} />
                 <Route path="/me" element={<Me />} />
                 <Route path="/member/:id" element={<MemberProfile />} />
               </Route>
             </Route>
-            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
