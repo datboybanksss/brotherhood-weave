@@ -43,12 +43,11 @@ export function useChannelMessages(channelId: string | undefined) {
 
   useEffect(() => {
     if (!channelId) return;
-    const ch = supabase
-      .channel(`messages:${channelId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages", filter: `channel_id=eq.${channelId}` },
-        async (payload) => {
+    const ch = supabase.channel(`messages:${channelId}:${Math.random().toString(36).slice(2)}`);
+    ch.on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "messages", filter: `channel_id=eq.${channelId}` },
+      async (payload) => {
           const row = payload.new as MessageRow;
           if (row.client_temp_id && pendingTempIds.current.has(row.client_temp_id)) {
             pendingTempIds.current.delete(row.client_temp_id);
@@ -56,22 +55,22 @@ export function useChannelMessages(channelId: string | undefined) {
           }
           const full = await fetchMessageById(row.id);
           if (full) setMessages((prev) => (prev.some((m) => m.id === full.id) ? prev : [...prev, full]));
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "messages", filter: `channel_id=eq.${channelId}` },
-        async (payload) => {
+      }
+    );
+    ch.on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "messages", filter: `channel_id=eq.${channelId}` },
+      async (payload) => {
           const row = payload.new as MessageRow;
           const full = await fetchMessageById(row.id);
           if (full) setMessages((prev) => prev.map((m) => (m.id === full.id ? full : m)));
-        }
-      )
-      .on("postgres_changes", { event: "*", schema: "public", table: "message_reactions" }, async () => {
-        const ids = messages.map((m) => m.id);
-        if (ids.length > 0) setReactions(await getReactionsForMessages(ids));
-      })
-      .subscribe();
+      }
+    );
+    ch.on("postgres_changes", { event: "*", schema: "public", table: "message_reactions" }, async () => {
+      const ids = messages.map((m) => m.id);
+      if (ids.length > 0) setReactions(await getReactionsForMessages(ids));
+    });
+    ch.subscribe();
     return () => {
       supabase.removeChannel(ch);
     };
