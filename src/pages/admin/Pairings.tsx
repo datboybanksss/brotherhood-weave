@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { getPairingsForWeek, triggerAssignFullMode } from "@/api/admin-pairings";
 import { getCurrentWeekStartSAST } from "@/api/peers";
+import { registerStravaWebhook } from "@/api/strava";
 
 function weekOption(offsetWeeks: number): { value: string; label: string } {
   const cur = getCurrentWeekStartSAST();
@@ -40,6 +41,16 @@ export default function AdminPairings() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const stravaMut = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await registerStravaWebhook();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data: any) => toast.success(`Strava webhook: ${data?.status ?? "ok"}`),
+    onError: (e: Error) => toast.error(`Strava webhook: ${e.message}`),
+  });
+
   const pairs = pairings?.filter((p) => !p.is_trio) ?? [];
   const trios = pairings?.filter((p) => p.is_trio) ?? [];
   const memberCount = pairs.length * 2 + trios.length * 3;
@@ -63,6 +74,9 @@ export default function AdminPairings() {
       </p>
       <Button size="sm" variant="outline" onClick={() => runMut.mutate()} disabled={runMut.isPending}>
         {runMut.isPending ? "Running..." : "Run full match for this week"}
+      </Button>
+      <Button size="sm" variant="outline" onClick={() => stravaMut.mutate()} disabled={stravaMut.isPending}>
+        {stravaMut.isPending ? "Registering..." : "Register Strava Webhook"}
       </Button>
       <div className="space-y-2">
         {pairings?.map((p) => (
