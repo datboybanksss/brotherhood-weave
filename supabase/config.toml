@@ -1,1 +1,7 @@
 project_id = "zsmkhndwoxhwasrlzeox"
+
+[functions.strava_callback]
+verify_jwt = false
+
+[functions.strava_webhook]
+verify_jwt = false
