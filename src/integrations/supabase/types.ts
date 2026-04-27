@@ -62,6 +62,96 @@ export type Database = {
           },
         ]
       }
+      channel_members: {
+        Row: {
+          channel_id: string
+          is_muted: boolean
+          joined_at: string
+          last_read_at: string
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          is_muted?: boolean
+          joined_at?: string
+          last_read_at?: string
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          is_muted?: boolean
+          joined_at?: string
+          last_read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_members_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channels: {
+        Row: {
+          channel_type: Database["public"]["Enums"]["channel_type_enum"]
+          created_at: string
+          department_id: string | null
+          description: string | null
+          display_order: number
+          id: string
+          is_admin_post_only: boolean
+          name: string
+          slug: string
+        }
+        Insert: {
+          channel_type: Database["public"]["Enums"]["channel_type_enum"]
+          created_at?: string
+          department_id?: string | null
+          description?: string | null
+          display_order: number
+          id?: string
+          is_admin_post_only?: boolean
+          name: string
+          slug: string
+        }
+        Update: {
+          channel_type?: Database["public"]["Enums"]["channel_type_enum"]
+          created_at?: string
+          department_id?: string | null
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_admin_post_only?: boolean
+          name?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channels_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           id: string
@@ -208,6 +298,121 @@ export type Database = {
           {
             foreignKeyName: "meetings_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          channel_id: string
+          client_temp_id: string | null
+          created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          edited_at: string | null
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          channel_id: string
+          client_temp_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          edited_at?: string | null
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          channel_id?: string
+          client_temp_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          edited_at?: string | null
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -673,6 +878,14 @@ export type Database = {
     }
     Functions: {
       evaluate_tier_upgrade: { Args: { target_user_id: string }; Returns: Json }
+      get_unread_count: {
+        Args: { _channel_id: string; _user_id: string }
+        Returns: number
+      }
+      is_channel_member: {
+        Args: { _channel_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_current_user_admin: { Args: never; Returns: boolean }
       process_payment: {
         Args: { p_amount: number; p_user_id: string }
@@ -680,6 +893,7 @@ export type Database = {
       }
     }
     Enums: {
+      channel_type_enum: "general" | "announcements" | "department"
       payment_status_enum: "pending" | "paid"
       payment_txn_status: "pending" | "completed" | "failed"
       playbook_category:
@@ -816,6 +1030,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      channel_type_enum: ["general", "announcements", "department"],
       payment_status_enum: ["pending", "paid"],
       payment_txn_status: ["pending", "completed", "failed"],
       playbook_category: [
