@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Camera, ImagePlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { updateProfile, uploadAvatar } from "@/api/account";
@@ -13,6 +14,7 @@ import type { AppUser } from "@/hooks/useCurrentUser";
 
 const schema = z.object({
   full_name: z.string().min(2, "Name must be at least 2 characters"),
+  bio: z.string().max(280, "Bio must be 280 characters or less").optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -23,10 +25,11 @@ export default function EditProfileForm({ user }: { user: AppUser }) {
   const cameraRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { full_name: user.full_name },
+    defaultValues: { full_name: user.full_name, bio: user.bio ?? "" },
   });
+  const bioValue = watch("bio") ?? "";
 
   const avatarMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -45,9 +48,10 @@ export default function EditProfileForm({ user }: { user: AppUser }) {
   });
 
   const mutation = useMutation({
-    mutationFn: (data: FormData) => updateProfile(user.id, { full_name: data.full_name, avatar_url: user.avatar_url }),
+    mutationFn: (data: FormData) => updateProfile(user.id, { full_name: data.full_name, avatar_url: user.avatar_url, bio: data.bio ?? null }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      queryClient.invalidateQueries({ queryKey: ["publicMember", user.id] });
       toast.success("Profile updated");
     },
     onError: (err: Error) => toast.error(err.message),
@@ -84,6 +88,22 @@ export default function EditProfileForm({ user }: { user: AppUser }) {
         <Label htmlFor="full_name">Full name</Label>
         <Input id="full_name" {...register("full_name")} />
         {errors.full_name && <p className="text-xs text-destructive">{errors.full_name.message}</p>}
+      </div>
+
+      <div className="space-y-1">
+        <Label htmlFor="bio">Bio</Label>
+        <Textarea
+          id="bio"
+          rows={3}
+          maxLength={280}
+          placeholder="A line or two about you — what you're working on, what you care about, where you're from."
+          {...register("bio")}
+        />
+        <div className="flex justify-between">
+          <p className="text-xs text-muted-foreground">Visible to other members on your profile.</p>
+          <p className="text-xs text-muted-foreground">{bioValue.length}/280</p>
+        </div>
+        {errors.bio && <p className="text-xs text-destructive">{errors.bio.message}</p>}
       </div>
 
       <Button type="submit" className="w-full min-h-[48px]" disabled={mutation.isPending}>

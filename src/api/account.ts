@@ -14,10 +14,14 @@ export async function uploadAvatar(userId: string, file: File): Promise<string> 
   return `${data.publicUrl}?t=${Date.now()}`;
 }
 
-export async function updateProfile(userId: string, data: { full_name: string; avatar_url: string | null }) {
+export async function updateProfile(userId: string, data: { full_name: string; avatar_url: string | null; bio?: string | null }) {
   const { error } = await supabase
     .from("users")
-    .update({ full_name: data.full_name, avatar_url: data.avatar_url || null })
+    .update({
+      full_name: data.full_name,
+      avatar_url: data.avatar_url || null,
+      ...(data.bio !== undefined ? { bio: data.bio || null } : {}),
+    })
     .eq("id", userId);
   if (error) throw error;
 }

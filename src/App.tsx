@@ -26,6 +26,8 @@ import PlaybookForm from "@/pages/admin/PlaybookForm";
 import AdminModulesList from "@/pages/admin/ModulesList";
 import ModuleForm from "@/pages/admin/ModuleForm";
 import LessonForm from "@/pages/admin/LessonForm";
+import AdminPairings from "@/pages/admin/Pairings";
+import MemberProfile from "@/pages/MemberProfile";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +57,7 @@ const App = () => (
               <Route path="/admin/modules/:id/edit" element={<ModuleForm />} />
               <Route path="/admin/modules/:moduleId/lessons/new" element={<LessonForm />} />
               <Route path="/admin/modules/:moduleId/lessons/:lessonId/edit" element={<LessonForm />} />
+              <Route path="/admin/pairings" element={<AdminPairings />} />
               <Route element={<PaidLayout />}>
                 <Route path="/home" element={<Home />} />
                 <Route path="/library" element={<Library />} />
@@ -64,6 +67,7 @@ const App = () => (
                 <Route path="/library/playbook/:slug" element={<PlaybookDetail />} />
                 <Route path="/brotherhood" element={<Brotherhood />} />
                 <Route path="/me" element={<Me />} />
+                <Route path="/member/:id" element={<MemberProfile />} />
               </Route>
             </Route>
             <Route path="/" element={<Navigate to="/login" replace />} />
