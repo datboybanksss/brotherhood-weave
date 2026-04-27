@@ -50,6 +50,13 @@ export type Database = {
             foreignKeyName: "archives_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "archives_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -138,6 +145,13 @@ export type Database = {
             foreignKeyName: "meeting_attendance_marked_by_fkey"
             columns: ["marked_by"]
             isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_attendance_marked_by_fkey"
+            columns: ["marked_by"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -146,6 +160,13 @@ export type Database = {
             columns: ["meeting_id"]
             isOneToOne: false
             referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_attendance_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -177,6 +198,13 @@ export type Database = {
           title?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "meetings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "meetings_created_by_fkey"
             columns: ["created_by"]
@@ -251,6 +279,86 @@ export type Database = {
             foreignKeyName: "payments_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      peer_pairings: {
+        Row: {
+          created_at: string
+          id: string
+          is_trio: boolean
+          member_a_id: string
+          member_b_id: string
+          member_c_id: string | null
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_trio?: boolean
+          member_a_id: string
+          member_b_id: string
+          member_c_id?: string | null
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_trio?: boolean
+          member_a_id?: string
+          member_b_id?: string
+          member_c_id?: string | null
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "peer_pairings_member_a_id_fkey"
+            columns: ["member_a_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_pairings_member_a_id_fkey"
+            columns: ["member_a_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_pairings_member_b_id_fkey"
+            columns: ["member_b_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_pairings_member_b_id_fkey"
+            columns: ["member_b_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_pairings_member_c_id_fkey"
+            columns: ["member_c_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_pairings_member_c_id_fkey"
+            columns: ["member_c_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -300,6 +408,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "playbooks_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "playbooks_author_id_fkey"
             columns: ["author_id"]
@@ -358,6 +473,13 @@ export type Database = {
             foreignKeyName: "user_departments_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_departments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -388,6 +510,13 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_lesson_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -433,6 +562,13 @@ export type Database = {
             foreignKeyName: "user_module_progress_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_module_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -441,6 +577,7 @@ export type Database = {
       users: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           email: string
           full_name: string
@@ -455,6 +592,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email: string
           full_name: string
@@ -469,6 +607,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email?: string
           full_name?: string
@@ -493,7 +632,44 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_member_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          membership_started_at: string | null
+          tier_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          membership_started_at?: string | null
+          tier_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          membership_started_at?: string | null
+          tier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       evaluate_tier_upgrade: { Args: { target_user_id: string }; Returns: Json }
