@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Avatar from "@/components/Avatar";
 
 interface MemberRowProps {
@@ -8,7 +9,10 @@ interface MemberRowProps {
 
 export default function MemberRow({ userId, fullName, departmentName }: MemberRowProps) {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg border border-border">
+    <Link
+      to={`/member/${userId}`}
+      className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-accent/50 active:bg-accent transition-colors"
+    >
       <Avatar userId={userId} size="md" />
       <div className="min-w-0">
         <p className="font-medium text-foreground truncate">{fullName}</p>
@@ -16,6 +20,6 @@ export default function MemberRow({ userId, fullName, departmentName }: MemberRo
           <p className="text-xs text-muted-foreground">{departmentName}</p>
         )}
       </div>
-    </div>
+    </Link>
   );
 }

@@ -7,6 +7,7 @@ export interface AppUser {
   email: string;
   full_name: string;
   avatar_url: string | null;
+  bio: string | null;
   tier_id: string | null;
   payment_status: "pending" | "paid";
   membership_started_at: string | null;
