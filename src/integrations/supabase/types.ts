@@ -835,6 +835,48 @@ export type Database = {
           },
         ]
       }
+      workouts: {
+        Row: {
+          created_at: string
+          distance_km: number
+          id: string
+          note: string | null
+          ran_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          distance_km: number
+          id?: string
+          note?: string | null
+          ran_at: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          distance_km?: number
+          id?: string
+          note?: string | null
+          ran_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workouts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workouts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       public_member_profiles: {
@@ -878,6 +920,7 @@ export type Database = {
     }
     Functions: {
       evaluate_tier_upgrade: { Args: { target_user_id: string }; Returns: Json }
+      get_collective_distance: { Args: never; Returns: number }
       get_unread_count: {
         Args: { _channel_id: string; _user_id: string }
         Returns: number
