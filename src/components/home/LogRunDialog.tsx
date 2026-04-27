@@ -56,6 +56,9 @@ export default function LogRunDialog({ trigger }: { trigger: React.ReactNode }) 
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-w-sm">
         <DialogHeader><DialogTitle>Log a run</DialogTitle></DialogHeader>
+        <p className="text-xs text-muted-foreground -mt-2 mb-1">
+          Connected to Strava? Your runs sync automatically. Use this only for manual entries.
+        </p>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="text-sm font-medium">Distance</label>
