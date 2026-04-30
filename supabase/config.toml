@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.strava_webhook]
 verify_jwt = false
+
+[functions.cleanup_fitness_videos]
+verify_jwt = false
