@@ -5,7 +5,6 @@ import TierProgressChecklist from "@/components/me/TierProgressChecklist";
 import DepartmentSelector from "@/components/me/DepartmentSelector";
 import AdminSection from "@/components/me/AdminSection";
 import SignOutButton from "@/components/me/SignOutButton";
-import FitnessLink from "@/components/me/FitnessLink";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export default function Me() {
@@ -17,7 +16,6 @@ export default function Me() {
 
   return (
     <div className="p-6 space-y-6">
-      <FitnessLink />
       <button
         onClick={() => navigate("/account")}
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full"
