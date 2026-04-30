@@ -4,6 +4,7 @@ import PeerPartnerCard from "@/components/home/PeerPartnerCard";
 import TierProgressMini from "@/components/home/TierProgressMini";
 import DepartmentsCard from "@/components/home/DepartmentsCard";
 import CollectiveChallengeCard from "@/components/home/CollectiveChallengeCard";
+import FitnessHubCard from "@/components/home/FitnessHubCard";
 
 export default function Home() {
   const { data: appUser } = useCurrentUser();
@@ -15,6 +16,7 @@ export default function Home() {
       <PeerPartnerCard />
       <DepartmentsCard />
       <CollectiveChallengeCard />
+      <FitnessHubCard />
       <TierProgressMini />
     </div>
   );
