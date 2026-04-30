@@ -1,83 +1,142 @@
-# Home Sprint: Departments Shortcut + Collective 100km Challenge
 
-## Confirmations
-1. **CircularProgress** — raw SVG, two `<circle>` + `stroke-dasharray` math. No chart library.
-2. **`get_collective_distance()`** — `STABLE SECURITY DEFINER` returning `numeric`. Called as `supabase.rpc('get_collective_distance')`. Numerics arrive as strings via PostgREST → wrap with `Number(...)`.
-3. **Realtime dedup** — no optimistic insert for workouts. INSERT runs, realtime echo invalidates the queries. No double-render risk.
-4. **RLS join confirmed** — the existing `Paid users can read other paid users` policy on `users` already lets the `getRecentWorkouts` join return `full_name`. No policy widening needed. The `<Avatar userId>` component fetches its own user+tier row internally, so the recent-runs join only needs `full_name` for display; ring color is handled by Avatar.
-5. **Threshold uses `>=`** — `percentComplete >= 100` triggers the green/done state. Verified in the smoke tests below.
+# Fitness Submissions Sprint (revised)
 
----
+## Communication confirmations
 
-## Files to Create / Modify
+**1. Storage bucket policies — user-folder-scoped uploads**
+Private `fitness-videos` bucket (`public=false`, 50MB, `video/mp4`+`video/quicktime`). Policies on `storage.objects`:
+- INSERT/UPDATE: `bucket_id='fitness-videos' AND (storage.foldername(name))[1] = auth.uid()::text`
+- DELETE: same, OR `is_current_user_admin()`
+- No SELECT policy → direct fetch returns 403. All client video access is via signed URLs from `get_submissions_signed`.
 
-### Task 1 — Migration
-- `supabase/migrations/<ts>_workouts.sql`
-  - `CREATE TABLE public.workouts` with columns + CHECK constraints (`distance_km > 0 AND <= 200`, note length `<= 200`, `ran_at <= current_date`, `ran_at >= '2026-01-01'`).
-  - Indexes: `(ran_at DESC)`, `(user_id, ran_at DESC)`.
-  - RLS enabled. Policies:
-    - SELECT: `is_current_user_admin() OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND payment_status = 'paid')`
-    - INSERT: `auth.uid() = user_id`
-    - No UPDATE / DELETE policies (locked out).
-  - BEFORE INSERT trigger `enforce_workout_user_id()` → `NEW.user_id := auth.uid()` when present.
-  - `ALTER PUBLICATION supabase_realtime ADD TABLE public.workouts;`
-  - `ALTER TABLE public.workouts REPLICA IDENTITY FULL;`
-  - `CREATE FUNCTION public.get_collective_distance()` + `GRANT EXECUTE TO authenticated`.
+**2. Visibility logic in `get_submissions_signed`**
+JWT-validated. For each row:
+- `public` → 1h signed URL
+- `private` AND viewer is owner OR admin → signed URL
+- otherwise → `video_url=null, video_locked=true`
+- no video → `video_url=null, video_locked=false`
 
-### Task 2 — Departments Shortcut Card
-- `src/api/home-departments.ts` — `getMyDepartmentsWithChannelSlug(userId)` joining `user_departments → departments` and mapping `department_id → channels.slug` where `channel_type='department'`.
-- `src/hooks/useMyDepartmentChannels.ts` — `useQuery`, 60s staleTime.
-- `src/components/home/DepartmentsCard.tsx` — Card with Users icon. Empty state: helper text + link to `/me`. Otherwise vertical pills (name + Star if primary) routing to `/communities/{slug}`. ≤50 lines.
-
-### Task 3 — Collective Challenge
-- `src/lib/fitness-constants.ts` — `GOAL_KM = 100`, `DEADLINE = new Date('2026-06-16')`.
-- `src/api/workouts.ts`
-  - `logWorkout({ distance_km, ran_at, note })` — INSERT with `user_id: auth.uid()` (satisfies RLS WITH CHECK; trigger re-asserts). Returns `{ error }`.
-  - `getRecentWorkouts(limit = 5)` — SELECT `id, user_id, distance_km, ran_at, note, created_at, users!user_id(full_name)` ordered `created_at DESC`.
-  - `getCollectiveDistance()` — `supabase.rpc('get_collective_distance')`, returns `Number(data ?? 0)`.
-- `src/components/home/CircularProgress.tsx` — SVG. Props `{ value, max, label?, sublabel? }`. Track `#9CA3AF`, arc `#1512D3`. When `value >= max`: arc `#10B981`, center "100 / 100 km — done." with Trophy icon. ≤50 lines.
-- `src/components/home/LogRunDialog.tsx` — shadcn Dialog + react-hook-form + zod (`distance_km: z.number().positive().max(200)`, `ran_at: z.date()`, `note: z.string().max(200).optional()`). Distance number input with `km` suffix, shadcn date picker (disable future + `<2026-01-01`), optional note with live counter. On submit: call `logWorkout`; on `error`, sonner error toast + keep dialog open + retain form values; on success, invalidate `['collectiveDistance']` + `['recentWorkouts']`, success toast with new total, close. ≤50 lines (split helper if needed).
-- `src/components/home/RecentRunsFeed.tsx` — Rows: `<Avatar userId={r.user_id} size="sm" />` + first-name from joined `full_name` + bold `{distance_km} km` + `formatDistanceToNow(created_at, { addSuffix: true })`; italic muted note line if present. Empty: "No runs logged yet — be the first." ≤50 lines.
-- `src/components/home/CollectiveChallengeCard.tsx` — Header "Brotherhood Challenge — 100km by June 16", CircularProgress, days-remaining text (hidden if past), full-width "Log a run" button, RecentRunsFeed. ≤50 lines.
-- `src/hooks/useCollectiveProgress.ts` — `useQuery(['collectiveDistance'])` + Realtime subscription on `workouts` INSERT → `queryClient.invalidateQueries`. Returns `{ totalKm, percentComplete, daysRemaining }`. Channel topic uses random suffix (StrictMode-safe, same fix as `useChannelMessages`).
-- `src/hooks/useRecentRuns.ts` — `useQuery(['recentWorkouts'])` + Realtime INSERT subscription → invalidate.
-
-### Task 4 — Home composition
-- `src/pages/Home.tsx` — Order: WelcomeHeader, PeerPartnerCard, **DepartmentsCard**, **CollectiveChallengeCard**, TierProgressMini.
+**3. Leaderboard zero-submission rule**
+**Excluded.** `get_monthly_leaderboard` returns only `submission_count > 0`. Forfeit list already surfaces non-participants.
 
 ---
 
-## Technical Notes
-- **PostgREST numeric**: `numeric` returns as string; client uses `Number(...)`.
-- **Realtime channel naming**: `supabase.channel(\`workouts:\${Math.random().toString(36).slice(2)}\`)` to dodge React StrictMode double-mount.
-- **RLS join**: confirmed — existing `Paid users can read other paid users` is sufficient for the `users!user_id(full_name)` embed.
-- **Trigger**: `enforce_workout_user_id()` mirrors `enforce_message_sender()`.
-- **No try/catch**: errors come back via supabase return shapes; LogRunDialog reads `{ error }` from `logWorkout`.
-- **types.ts**: regenerated automatically post-migration; no manual edit.
+## Amendments applied
+
+### Amendment 1 — Atomic deletion safety
+`deleteSubmission` order is reversed and tolerant:
+1. `DELETE FROM submissions WHERE id = X` (RLS-protected, atomic). If this fails, surface the error and stop — nothing is lost.
+2. **Then** best-effort `storage.from('fitness-videos').remove([path])`. If this fails, `console.warn` and swallow the error — the row is already gone, so the user's UI is consistent.
+
+`cleanup_fitness_videos` is extended to also **sweep orphaned files**:
+- Pass A (existing): null `video_url` for rows where `submitted_at < now() - 90d AND video_retention='90_days'`, and delete those storage files.
+- Pass B (new): list every file in the `fitness-videos` bucket; for each path `{user_id}/{submission_id}.{ext}`, parse the `submission_id` and check `EXISTS(SELECT 1 FROM submissions WHERE id = submission_id AND video_url = path)`. If no matching row, delete the file. Returns `{ expired_nulled: N, orphans_swept: M }`.
+
+### Amendment 2 — Forfeit week anchor (Monday SAST)
+Explicit week semantics: **Monday 00:00 SAST → Sunday 23:59 SAST.** The Wednesday gate means the list goes live at **Wednesday 00:00 SAST** of the same week as the upcoming Saturday call.
+
+Implementation in `ForfeitWatchlist.tsx`:
+```ts
+// SAST = UTC+2, no DST. We compute "now in SAST" by shifting,
+// then take startOfWeek with weekStartsOn=1 (Monday).
+// IMPORTANT: at year boundaries the SAST date can be one day ahead of UTC.
+// Always anchor to SAST before computing the week.
+import { startOfWeek, formatISO, getDay } from "date-fns";
+const SAST_OFFSET_MS = 2 * 60 * 60 * 1000;
+const nowSast = new Date(Date.now() + SAST_OFFSET_MS);
+const mondayOfWeek = startOfWeek(nowSast, { weekStartsOn: 1 });
+const weekStartISO = formatISO(mondayOfWeek, { representation: "date" }); // YYYY-MM-DD
+const sastDow = getDay(nowSast); // 0=Sun, 1=Mon, ..., 6=Sat
+const liveYet = sastDow === 0 || sastDow >= 3; // Wed/Thu/Fri/Sat/Sun
+```
+`weekStartISO` is passed to `get_weekly_forfeit_list(week_start date)`. The SQL function uses `submitted_at >= week_start AND submitted_at < week_start + interval '7 days'` (anchored at Monday 00:00 SAST converted to UTC by the planner via `timestamptz` semantics — we pass a `date`, Postgres interprets in session TZ; we'll set `SET LOCAL TIME ZONE 'Africa/Johannesburg'` inside the function to make this unambiguous).
+
+A header comment in both `ForfeitWatchlist.tsx` and the SQL function documents the convention so timezone bugs are easier to debug at year-end.
+
+### Amendment 3 — Soft-fail video upload in `LogActivityDialog`
+Reordered submit flow:
+1. Generate `submissionId = crypto.randomUUID()` client-side.
+2. INSERT the submission row with `id = submissionId, video_url = NULL` (and the chosen `video_retention`/`video_visibility` if a video was selected — these are stored even before upload so the retention sweep treats the eventual file correctly).
+3. If a video was selected, upload to `fitness-videos/{user_id}/{submissionId}.{ext}`.
+4. On upload success: `UPDATE submissions SET video_url = path WHERE id = submissionId`. Toast success.
+5. On upload failure: keep the row, toast `"Submission logged, but video upload failed."` with a **Retry** action that re-runs the upload + UPDATE against the existing row. Retry state is held in component state; if the user dismisses, the row stands as a no-video submission (still counts toward reps + leaderboard).
+6. If step 2 (the row INSERT) itself fails, no upload is attempted and the user gets `"Couldn't log submission: {message}"`.
+
+This guarantees: **the user's rep count is never lost to a flaky video upload.**
 
 ---
 
-## Build Order
-1. Migration (workouts + RLS + trigger + Realtime + RPC).
-2. `src/api/workouts.ts` + `src/api/home-departments.ts` + `src/lib/fitness-constants.ts`.
-3. `CircularProgress` (visually verify 0 / 50 / 100).
-4. `useCollectiveProgress` + `useRecentRuns`.
-5. `RecentRunsFeed`, `LogRunDialog`, `CollectiveChallengeCard`.
-6. `useMyDepartmentChannels` + `DepartmentsCard`.
-7. Update `Home.tsx`.
-8. Smoke tests.
+## Files to create/modify
+
+### Migration — `supabase/migrations/<ts>_fitness_submissions.sql`
+- `submissions` table + CHECKs + 3 indexes
+- BEFORE INSERT trigger `enforce_submissions_user_id` (forces `user_id := auth.uid()` when JWT present)
+- RLS: SELECT (paid OR admin), INSERT (own), DELETE (own OR admin), no UPDATE policy for users — but we need owner UPDATE for the soft-fail retry. Add UPDATE policy: `auth.uid() = user_id` with `WITH CHECK` restricted to mutating only `video_url` (enforced via a BEFORE UPDATE trigger that rejects changes to any other column).
+- Storage bucket `fitness-videos` (private, 50MB, mp4/mov)
+- Storage policies (folder-scoped INSERT/UPDATE/DELETE; admin DELETE; no SELECT)
+- SQL functions:
+  - `get_monthly_leaderboard(month_start date)` — excludes zero-submission users; tie-break `score DESC, submission_count DESC, full_name ASC`
+  - `get_weekly_forfeit_list(week_start date)` — uses `Africa/Johannesburg` session TZ; sorts by `last_submission_at ASC NULLS FIRST`
+  - `get_user_weekly_streak(_user_id uuid)` — backward iteration in SAST
+  - `get_user_monthly_stats(_user_id uuid, month_start date)` — returns reps/submissions/videos/rank in one row
+- pg_cron schedule for `cleanup_fitness_videos` daily at 01:00 UTC
+
+### Edge functions
+- `supabase/functions/cleanup_fitness_videos/index.ts` — service role; Pass A (90d retention) + Pass B (orphan sweep)
+- `supabase/functions/get_submissions_signed/index.ts` — JWT-validated; visibility-aware signed URL minting
+
+### API + hooks
+- `src/api/submissions.ts` — `logSubmission` (returns id), `attachVideoToSubmission(id, path)`, `deleteSubmission(id, path?)` (row-first then best-effort storage), `uploadVideo(file, userId, submissionId)`, `getMyRecentSubmissions`
+- `src/api/fitness.ts` — `getMonthlyLeaderboard`, `getWeeklyForfeitList`, `getUserStreak`, `getUserMonthlyStats`, `getMemberSubmissionsSigned`
+- `src/hooks/useFitnessLeaderboard.ts`, `useForfeitList.ts`, `useMyMonthlyStats.ts`, `useMemberSubmissions.ts`
+
+### UI — Fitness page
+- `src/pages/Fitness.tsx`
+- `src/components/fitness/LogActivityDialog.tsx` (≤50 lines; orchestrates the row-first/upload-second/retry flow)
+- `src/components/fitness/ExerciseSelect.tsx`
+- `src/components/fitness/VideoUploader.tsx` (≤50 lines; validates duration ≤60s, size ≤50MB, MIME)
+- `src/components/fitness/MyRecentSubmissions.tsx`
+- `src/components/fitness/MonthlyLeaderboard.tsx`
+- `src/components/fitness/LeaderboardRow.tsx`
+- `src/components/fitness/ForfeitWatchlist.tsx` (Monday-SAST + Wednesday-gate logic, with explanatory comment)
+- `src/components/fitness/ForfeitRow.tsx`
+- `src/lib/exercises.ts` — enum, labels, icons, `isTimeBased(exercise)`
+
+### Entry points
+- `src/components/home/FitnessHubCard.tsx` — placed below `CollectiveChallengeCard` in `Home.tsx`
+- `src/components/me/FitnessLink.tsx` — placed above "Account settings" in `Me.tsx`
+- `App.tsx` — add `<Route path="/fitness" element={<Fitness />} />` inside the `<PaidLayout>` block
+
+### Public profile
+- `src/components/member/FitnessSection.tsx` — wires stats + activity log; rendered in `MemberProfile.tsx` below `LatestRunCard`
+- `src/components/member/FitnessStats.tsx`
+- `src/components/member/FitnessActivityRow.tsx`
+- `src/components/member/VideoPlayer.tsx` — inline `<video controls>`
 
 ---
 
-## Smoke Tests (delivered after build)
-a. **Empty state** — 0 workouts: progress shows "0 / 100 km", arc empty, feed shows "No runs logged yet — be the first."
-b. **Logging a run** — log 5.0 km today with note "test run". Circle → 5.0 / 100, feed shows row, success toast.
-c. **Real-time across two clients** — User A logs 3.5 km; User B's circle and feed update within ~1s, no refresh.
-d. **Departments shortcut** — 2-dept member sees both with primary starred; tap routes to `/communities/{slug}`. 0-dept member sees empty state with "Go to Me tab" link.
-e. **RLS attack tests** — non-paid SELECT returns empty/error; spoofed `user_id` INSERT gets overwritten by trigger to `auth.uid()`; UPDATE rejected; DELETE rejected.
-f. **Validation** — `-5` blocked; `250` blocked; future date disabled; >200-char note blocked with red counter.
-g. **Aggregate correctness** — log 1.5 + 2.0 + 2.5 → total reads exactly 6.0, percent = 6%.
-h. **Days remaining** — text matches actual `differenceInCalendarDays(DEADLINE, today)`.
-i. **100km milestone** — SQL-insert one 100km workout. Circle goes green, "100 / 100 km — done." with Trophy. A subsequent run still increments total (e.g. 102.5) but visual stays full green.
-j. **Failure path retains form state** — from browser console, call `supabase.from('workouts').insert({ ran_at: '2025-12-01', distance_km: 5 })` directly to violate the `ran_at >= '2026-01-01'` CHECK constraint. Then in the UI, fill out LogRunDialog with distance 5.0, today's date, note "won't submit", and use the same trick (open devtools and force-submit a `ran_at` < 2026-01-01 by manipulating the form value before submit, OR temporarily edit the dialog's submit handler to pass a bad date). Confirm: error toast appears, dialog stays open, all form fields retain their values.
-k. **Exact 100km transition** — SQL-insert one workout of 99.5 km. Open Home as a paid member, confirm circle reads "99.5 / 100 km" with the blue arc (NOT green yet). Then via the UI log a 1.0 km run. Confirm: circle flips to green and shows "100 / 100 km — done." with Trophy at total = 100.5. Confirms threshold uses `>=`, fires exactly at 100, and does not regress when the total exceeds 100.
+## Build order
+
+1. Migration (table, RLS incl. constrained owner UPDATE, trigger, bucket+policies, SQL functions, cron)
+2. `cleanup_fitness_videos` (Pass A + Pass B)
+3. `get_submissions_signed`
+4. `src/lib/exercises.ts`, `src/api/submissions.ts`, `src/api/fitness.ts`
+5. Hooks
+6. `LogActivityDialog` + `VideoUploader` + `ExerciseSelect` (with retry-on-failed-upload)
+7. `Fitness.tsx` + leaderboard/forfeit/recent components
+8. `App.tsx` route + `FitnessHubCard` + `FitnessLink`
+9. `FitnessSection` on `MemberProfile.tsx`
+10. Smoke tests (incl. amendment-specific cases below)
+
+## Extra smoke tests for amendments
+
+- **A1a:** Delete a submission with a video → row gone immediately; storage file deleted shortly after; no UI flicker.
+- **A1b:** Simulate storage delete failure (e.g., wrong path) → row still gone; warning in console; next cron run sweeps the orphan.
+- **A1c:** Manually upload a file to `fitness-videos/{uid}/{random-uuid}.mp4` with no matching row → after `cleanup_fitness_videos` invocation, file is removed.
+- **A2a:** On Tuesday SAST, forfeit card shows "goes live Wednesday."
+- **A2b:** On Wednesday 00:01 SAST (UTC Tuesday 22:01), forfeit list is live and uses the Monday of the *current* SAST week.
+- **A2c:** Year-boundary case (Dec 31 SAST 23:30 = Dec 31 UTC 21:30) — `weekStartISO` resolves to the Monday of the SAST week, not the UTC week.
+- **A3a:** Network-disable Storage mid-submit → submission row appears in the feed; toast offers Retry; tapping Retry re-uploads + UPDATEs `video_url`.
+- **A3b:** Dismiss the retry → row remains as a no-video submission; rep count and leaderboard reflect it.
+- **A3c:** RLS check: try to UPDATE another user's submission's `video_url` → rejected by policy.
+- **A3d:** RLS check: try to UPDATE own submission's `reps` → rejected by the BEFORE UPDATE trigger.
