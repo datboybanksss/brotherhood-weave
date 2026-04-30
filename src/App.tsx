@@ -28,6 +28,7 @@ import ModuleForm from "@/pages/admin/ModuleForm";
 import LessonForm from "@/pages/admin/LessonForm";
 import AdminPairings from "@/pages/admin/Pairings";
 import MemberProfile from "@/pages/MemberProfile";
+import Fitness from "@/pages/Fitness";
 import Communities from "@/pages/Communities";
 import ChannelView from "@/pages/ChannelView";
 import NotFound from "@/pages/NotFound";
@@ -73,6 +74,7 @@ const App = () => (
                 <Route path="/communities/:slug" element={<ChannelView />} />
                 <Route path="/me" element={<Me />} />
                 <Route path="/member/:id" element={<MemberProfile />} />
+                <Route path="/fitness" element={<Fitness />} />
               </Route>
             </Route>
             <Route path="*" element={<NotFound />} />
