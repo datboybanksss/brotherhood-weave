@@ -1,12 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { Home, BookOpen, Users, User, MessageSquare } from "lucide-react";
+import { Home, BookOpen, Dumbbell, User, MessageSquare } from "lucide-react";
 import { useTotalUnreadCount } from "@/hooks/useTotalUnreadCount";
 
 const tabs = [
   { to: "/home", icon: Home, label: "Home" },
   { to: "/library", icon: BookOpen, label: "Library" },
   { to: "/communities", icon: MessageSquare, label: "Communities" },
-  { to: "/brotherhood", icon: Users, label: "Brotherhood" },
+  { to: "/fitness", icon: Dumbbell, label: "Fitness" },
   { to: "/me", icon: User, label: "Me" },
 ];
 
