@@ -719,6 +719,63 @@ export type Database = {
         }
         Relationships: []
       }
+      submissions: {
+        Row: {
+          created_at: string
+          event_id: string | null
+          exercise: string
+          id: string
+          note: string | null
+          reps: number
+          submitted_at: string
+          user_id: string
+          video_retention: string
+          video_url: string | null
+          video_visibility: string
+        }
+        Insert: {
+          created_at?: string
+          event_id?: string | null
+          exercise: string
+          id?: string
+          note?: string | null
+          reps: number
+          submitted_at?: string
+          user_id: string
+          video_retention?: string
+          video_url?: string | null
+          video_visibility?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string | null
+          exercise?: string
+          id?: string
+          note?: string | null
+          reps?: number
+          submitted_at?: string
+          user_id?: string
+          video_retention?: string
+          video_url?: string | null
+          video_visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tiers: {
         Row: {
           display_order: number
@@ -1023,9 +1080,42 @@ export type Database = {
     Functions: {
       evaluate_tier_upgrade: { Args: { target_user_id: string }; Returns: Json }
       get_collective_distance: { Args: never; Returns: number }
+      get_monthly_leaderboard: {
+        Args: { month_start: string }
+        Returns: {
+          avatar_url: string
+          full_name: string
+          score: number
+          submission_count: number
+          tier_id: string
+          total_reps: number
+          user_id: string
+          video_count: number
+        }[]
+      }
       get_unread_count: {
         Args: { _channel_id: string; _user_id: string }
         Returns: number
+      }
+      get_user_monthly_stats: {
+        Args: { _user_id: string; month_start: string }
+        Returns: {
+          rank: number
+          submission_count: number
+          total_reps: number
+          video_count: number
+        }[]
+      }
+      get_user_weekly_streak: { Args: { _user_id: string }; Returns: number }
+      get_weekly_forfeit_list: {
+        Args: { week_start: string }
+        Returns: {
+          avatar_url: string
+          full_name: string
+          last_submission_at: string
+          tier_id: string
+          user_id: string
+        }[]
       }
       is_channel_member: {
         Args: { _channel_id: string; _user_id: string }
