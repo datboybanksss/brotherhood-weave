@@ -170,6 +170,80 @@ export type Database = {
         }
         Relationships: []
       }
+      invitations: {
+        Row: {
+          created_at: string
+          created_by: string
+          email: string
+          expires_at: string
+          full_name: string
+          id: string
+          intended_tier: string
+          is_admin: boolean
+          revoked_at: string | null
+          token: string
+          used_at: string | null
+          used_by_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          email: string
+          expires_at?: string
+          full_name: string
+          id?: string
+          intended_tier?: string
+          is_admin?: boolean
+          revoked_at?: string | null
+          token: string
+          used_at?: string | null
+          used_by_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          email?: string
+          expires_at?: string
+          full_name?: string
+          id?: string
+          intended_tier?: string
+          is_admin?: boolean
+          revoked_at?: string | null
+          token?: string
+          used_at?: string | null
+          used_by_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_used_by_user_id_fkey"
+            columns: ["used_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_used_by_user_id_fkey"
+            columns: ["used_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           body_markdown: string | null
@@ -936,8 +1010,10 @@ export type Database = {
           id: string
           interview_booked_at: string | null
           interview_completed: boolean
+          invited_via_token: string | null
           is_admin: boolean
           membership_started_at: string | null
+          onboarded_at: string | null
           payment_status: Database["public"]["Enums"]["payment_status_enum"]
           rejected_at: string | null
           tier_id: string | null
@@ -951,8 +1027,10 @@ export type Database = {
           id: string
           interview_booked_at?: string | null
           interview_completed?: boolean
+          invited_via_token?: string | null
           is_admin?: boolean
           membership_started_at?: string | null
+          onboarded_at?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status_enum"]
           rejected_at?: string | null
           tier_id?: string | null
@@ -966,8 +1044,10 @@ export type Database = {
           id?: string
           interview_booked_at?: string | null
           interview_completed?: boolean
+          invited_via_token?: string | null
           is_admin?: boolean
           membership_started_at?: string | null
+          onboarded_at?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status_enum"]
           rejected_at?: string | null
           tier_id?: string | null
