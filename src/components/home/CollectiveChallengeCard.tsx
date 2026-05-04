@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw, Activity } from "lucide-react";
 import { toast } from "sonner";
 import CircularProgress from "./CircularProgress";
 import LogRunDialog from "./LogRunDialog";
-import RecentRunsFeed from "./RecentRunsFeed";
+import { stopTile } from "./BentoGrid";
 import { useCollectiveProgress } from "@/hooks/useCollectiveProgress";
 import { useStravaConnection } from "@/hooks/useStravaConnection";
 import { useVerifiedCounts } from "@/hooks/useVerifiedCounts";
@@ -42,39 +41,31 @@ export default function CollectiveChallengeCard() {
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Brotherhood Challenge — 100km by June 16</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex flex-col items-center">
-          <CircularProgress value={totalKm} max={GOAL_KM} />
-          {daysRemaining > 0 && (
-            <div className="text-xs text-muted-foreground mt-2">{daysRemaining} days remaining</div>
-          )}
-          {verified > 0 && (
-            <div className="text-xs text-muted-foreground mt-1">{verified} of {total} verified via Strava</div>
-          )}
-        </div>
-        <div className="space-y-2">
-          {connection ? (
-            <Button className="w-full" onClick={onSync} disabled={busy}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${busy ? "animate-spin" : ""}`} /> Sync from Strava
-            </Button>
-          ) : (
-            <Button className="w-full" onClick={onConnect}>
-              <Activity className="w-4 h-4 mr-2" /> Connect Strava
-            </Button>
-          )}
-          <LogRunDialog trigger={
-            <Button variant="outline" className="w-full"><Plus className="w-4 h-4 mr-2" />Log a run manually</Button>
-          } />
-        </div>
-        <div>
-          <div className="text-sm font-medium mb-2">Latest from the brotherhood</div>
-          <RecentRunsFeed />
-        </div>
-      </CardContent>
-    </Card>
+    <div className="space-y-4">
+      <div className="text-sm font-semibold text-foreground">100km Challenge — by June 16</div>
+      <div className="flex flex-col items-center">
+        <CircularProgress value={totalKm} max={GOAL_KM} />
+        {daysRemaining > 0 && (
+          <div className="text-xs text-muted-foreground mt-2">{daysRemaining} days remaining</div>
+        )}
+        {verified > 0 && (
+          <div className="text-xs text-muted-foreground mt-1">{verified} of {total} verified via Strava</div>
+        )}
+      </div>
+      <div className="space-y-2" onClick={stopTile}>
+        {connection ? (
+          <Button className="w-full" onClick={onSync} disabled={busy}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${busy ? "animate-spin" : ""}`} /> Sync from Strava
+          </Button>
+        ) : (
+          <Button className="w-full" onClick={onConnect}>
+            <Activity className="w-4 h-4 mr-2" /> Connect Strava
+          </Button>
+        )}
+        <LogRunDialog trigger={
+          <Button variant="outline" className="w-full"><Plus className="w-4 h-4 mr-2" />Log a run manually</Button>
+        } />
+      </div>
+    </div>
   );
 }

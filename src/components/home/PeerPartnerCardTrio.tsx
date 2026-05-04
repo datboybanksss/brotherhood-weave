@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import Avatar from "@/components/Avatar";
+import { stopTile } from "./BentoGrid";
 import type { PartnerInfo } from "@/api/peers";
 
 interface Props { partners: PartnerInfo[]; weekEnd: Date }
@@ -8,7 +9,7 @@ interface Props { partners: PartnerInfo[]; weekEnd: Date }
 export default function PeerPartnerCardTrio({ partners, weekEnd }: Props) {
   const navigate = useNavigate();
   return (
-    <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+    <div className="space-y-4">
       <div className="space-y-1">
         <h2 className="text-sm font-semibold text-foreground">Your peers this week</h2>
         <p className="text-xs text-muted-foreground">
@@ -19,7 +20,7 @@ export default function PeerPartnerCardTrio({ partners, weekEnd }: Props) {
         {partners.map((p) => (
           <button
             key={p.id}
-            onClick={() => navigate(`/member/${p.id}`)}
+            onClick={(e) => { stopTile(e); navigate(`/member/${p.id}`); }}
             className="w-full flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-accent/50 transition-colors text-left"
           >
             <Avatar userId={p.id} size="md" />

@@ -5,7 +5,7 @@ import { getNextMondayDate } from "@/api/peers";
 export default function PeerPartnerCardWaiting() {
   const nextMon = getNextMondayDate();
   return (
-    <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+    <div className="space-y-3">
       <div className="flex items-center gap-2">
         <Users className="h-5 w-5 text-muted-foreground" />
         <h2 className="text-sm font-semibold text-foreground">Your peer is on the way</h2>

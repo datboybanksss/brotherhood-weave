@@ -1,11 +1,9 @@
-import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Users, ChevronRight } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users } from "lucide-react";
+import Avatar from "@/components/Avatar";
 import { supabase } from "@/lib/supabase";
 
 export default function BrotherhoodCard() {
-  const nav = useNavigate();
   const { data: count } = useQuery({
     queryKey: ["brotherhoodCount"],
     queryFn: async () => {
@@ -20,19 +18,42 @@ export default function BrotherhoodCard() {
     staleTime: 60_000,
   });
 
+  const { data: recent } = useQuery({
+    queryKey: ["brotherhoodRecentAvatars"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("users")
+        .select("id")
+        .eq("payment_status", "paid")
+        .is("rejected_at", null)
+        .order("created_at", { ascending: false })
+        .limit(3);
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 60_000,
+  });
+
   return (
-    <Card className="cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => nav("/brotherhood")}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Users className="w-4 h-4" />Brotherhood
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {count ?? 0} {count === 1 ? "brother" : "brothers"}
-        </p>
-        <ChevronRight className="w-4 h-4 text-muted-foreground" />
-      </CardContent>
-    </Card>
+    <div className="flex h-full flex-col justify-between">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        <Users className="h-3.5 w-3.5" /> Brotherhood
+      </div>
+      <div>
+        <div className="text-3xl font-bold leading-none text-foreground">{count ?? 0}</div>
+        <div className="text-xs text-muted-foreground mt-1">
+          {count === 1 ? "brother" : "brothers"}
+        </div>
+      </div>
+      {recent && recent.length > 0 && (
+        <div className="flex -space-x-2">
+          {recent.map((u) => (
+            <div key={u.id} className="ring-2 ring-card rounded-full">
+              <Avatar userId={u.id} size="sm" />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

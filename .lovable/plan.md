@@ -1,83 +1,84 @@
-## The gap
+# Bento-grid Home page (mobile-first, every tile is tappable)
 
-Right now `/me` is a settings/control panel — it shows your avatar, tier progress, departments selector, admin links, sign out. But there's no way for you to see what *other members* see when they tap your profile from Brotherhood. `MemberProfile` (`/member/:id`) shows: header (avatar, tier, primary dept, member since) → bio → all department badges → latest run.
+Adapting the bento-grid idea to Family Ties: mobile-first 2-col grid, varied tile sizes, our own content, and **every tile navigates to its dedicated tab/page** so the home becomes a true launch pad.
 
-Members can preview other people but not themselves. That's the asymmetry to fix.
+## Why not the raw component
+- Reference is desktop-first (3-col × 3-row); on mobile (390px) it collapses to a plain stack — same problem we have today.
+- Hard-coded "Integrations / Doc Hands" slots don't map to brotherhood content.
+- Pulls in `framer-motion` just for stagger — we already have `animate-fade-in` in our Tailwind config.
 
-## Recommendation: Instagram-style "your profile is the page"
+## Layout
 
-Convert `/me` into a **self-view of your public profile**, with private controls tucked behind clear affordances — exactly how Instagram does it.
-
-### New /me layout (top to bottom)
+Mobile-first 2-col, expanding to 4-col on `md+`. Tile importance drives `col-span` / `row-span`.
 
 ```text
-┌─────────────────────────────────┐
-│  ← (none)        ⚙ settings icon│  ← top bar
-│                                 │
-│         [Avatar w/ tier ring]   │
-│         Full Name               │
-│         [Tier Badge]            │
-│         Primary Dept · Joined   │
-│                                 │
-│  [ Edit profile ] [ Share ]     │  ← primary actions row
-│                                 │
-│  About                          │
-│  ┌───────────────────────────┐  │
-│  │ Bio text (or "Add a bio") │  │
-│  └───────────────────────────┘  │
-│                                 │
-│  Departments                    │
-│  [Dept] [Dept] [Dept]           │
-│                                 │
-│  Latest run                     │
-│  (LatestRunCard for self)       │
-│                                 │
-│  ─── Tier Progress ───          │  (only if Foundation)
-│  Ascend to Independent Thinker  │
-│  ☑ Attend 2 meetings…           │
-│                                 │
-│  ─── Admin ───                  │  (only if is_admin)
-│  Approvals · Modules · …        │
-└─────────────────────────────────┘
+Mobile (390px, 2 cols)            md+ (4 cols)
+┌─────────────────────────┐       ┌────┬────┬────┬────┐
+│  Welcome (full)         │       │ Welcome (span 4)  │
+├─────────────────────────┤       ├────┴────┼────┴────┤
+│  Peer of the week       │       │  Peer   │ 100km   │
+│  (full, hero) → /me     │       │ (span 2)│ Challenge│
+├───────────┬─────────────┤       │         │(span 2, │
+│ Brother-  │  Tier       │       │         │ row 2)  │
+│ hood →    │  Progress   │       ├────┬────┤         │
+│/brotherhd │  → /me      │       │ B'h│Tier│         │
+├───────────┴─────────────┤       ├────┴────┼────┬────┤
+│  100km Challenge        │       │ Depts   │Fit │Runs│
+│  (full) → /fitness      │       │(span 2) │    │    │
+├───────────┬─────────────┤       └─────────┴────┴────┘
+│ Depts →   │  Fitness →  │
+│/communit. │  /fitness   │
+├───────────┴─────────────┤
+│ Latest runs → /fitness  │
+└─────────────────────────┘
 ```
 
-The page now **looks like** what other members see, with three additions a public viewer wouldn't get:
-1. A top-right **settings gear** (`⚙`) → navigates to `/account` (existing page already has Edit Profile form, Strava, danger zone, rewatch onboarding, etc.)
-2. An **Edit profile** button right under the header → also goes to `/account`, scrolled to the edit form
-3. **Tier progress** and **Admin** sections kept below the public view (private to you)
+## Tile → destination map (the "every tile is a tab" rule)
 
-### What moves where
+| Tile | Destination | Existing route? |
+|---|---|---|
+| Welcome strip | `/account` (avatar tap) | yes |
+| Peer of the week | `/member/:partnerId` (single) or `/me` (waiting) | yes |
+| 100km Challenge | `/fitness` (new "Challenge" deep section, scroll anchor `#challenge`) | yes |
+| Brotherhood count | `/brotherhood` | yes |
+| Tier progress | `/me` (scrolls to checklist, anchor `#tier`) | yes |
+| Departments | `/communities` (or first dept channel) | yes |
+| Fitness hub | `/fitness` | yes |
+| Latest runs | `/fitness#runs` | yes |
 
-| Current location | New location |
-|---|---|
-| ProfileHeader on /me | Replaced by `PublicProfileHeader` (same component used on `/member/:id`) |
-| "Account settings" link at top | Becomes a gear icon top-right + "Edit profile" button |
-| TierProgressChecklist | Stays on /me, below the public view, only for Foundation |
-| DepartmentSelector (full picker grid) | **Moved to /account** — editing departments is a settings action. /me just shows them as badges (read-only) |
-| AdminSection | Stays on /me, below tier progress |
-| SignOutButton | **Moved to /account** (it already lives there implicitly via Sign out — actually it's only on /me today; move it to /account so /me stays clean) |
+Tiles that today contain inner buttons (Connect Strava, Log Run, View profile) keep those buttons functional but the **rest of the tile area** becomes a tappable surface that routes to the destination above. Inner buttons use `e.stopPropagation()` so they don't double-fire.
 
-### Details / technical notes
+## Visual treatment
+- Uniform `rounded-2xl border border-border/60 bg-card shadow-sm`, `p-4` interior.
+- Grid: `grid grid-cols-2 md:grid-cols-4 gap-3 auto-rows-[minmax(120px,auto)]`.
+- Hero tiles get a faint primary gradient `bg-gradient-to-br from-card to-primary/5`.
+- Compact stat tiles: big number/icon top, label, `ChevronRight` bottom-right hinting "tap to open".
+- `animate-fade-in` from existing config — no `framer-motion` install.
+- Each tappable tile: `role="link"`, `tabIndex={0}`, `cursor-pointer`, `hover:bg-muted/30 transition-colors`, `focus-visible:ring-2 ring-primary`.
 
-- **Reuse `PublicProfileHeader`, `BioCard`, `LatestRunCard`** — same components as `MemberProfile.tsx`, fed with the current user's data. This guarantees the self-view is byte-identical to what others see.
-- Pull self data via `getPublicMemberById(appUser.id)` so any RLS/view-layer filtering applied to the public view also applies to the self-view (true WYSIWYG).
-- **Share button**: copies a link to `/member/{id}` to clipboard via `navigator.clipboard` + sonner toast. No new infra.
-- **Edit profile button** + gear icon: both navigate to `/account`. The gear is in the top-right corner of /me (`absolute top-4 right-4` style).
-- **Add empty state for bio**: if `bio` is null, `BioCard` shows "No bio yet" — for self-view, swap that to a tappable "Add a bio" CTA that navigates to `/account#bio`.
-- `Account.tsx` gains a `DepartmentSelector` section (between `EditProfileForm` and `StravaConnection`) and a `SignOutButton` near the bottom (above `DangerZone`). Both components already exist — just import them.
-- Optional polish: support `/account#bio` hash to scroll/focus the bio textarea on arrival from the empty-bio CTA.
+## Files to change
 
-### Files touched
+1. **New `src/components/home/BentoGrid.tsx`** — `<BentoGrid>` wrapper + `<BentoTile span={{base, md}} variant="default|hero|stat" to?: string onClick?: () => void>` that applies the shell, fade-in, and (when `to` is set) wraps in a navigable surface using `useNavigate`. Renders `ChevronRight` indicator for stat variant.
+2. **`src/pages/Home.tsx`** — replace `space-y-5` stack with `<BentoGrid>` containing each tile with its `to` destination from the table above. Pull `RecentRunsFeed` out of `CollectiveChallengeCard` into its own `<BentoTile to="/fitness#runs">`.
+3. **`src/components/home/CollectiveChallengeCard.tsx`** — remove inner "Latest from the brotherhood" block (moves out). Strip outer card chrome (BentoTile provides it). Make body tappable → `/fitness#challenge`; "Connect/Sync Strava" and "Log a run manually" buttons stay, with `stopPropagation`.
+4. **`src/components/home/BrotherhoodCard.tsx`** — restyle as compact stat tile (big count, "brothers", small 3-avatar constellation), strip own card chrome, navigation handled by BentoTile (`to="/brotherhood"`).
+5. **`src/components/home/TierProgressMini.tsx`** — restyle as compact stat tile, strip own button (BentoTile is the button) → `/me#tier`.
+6. **`src/components/home/FitnessHubCard.tsx`** — convert to compact vertical stat tile, strip own card chrome → `/fitness`.
+7. **`src/components/home/DepartmentsCard.tsx`** — strip own card chrome. Whole tile navigates to `/communities`; individual department rows keep their own click handlers (with `stopPropagation`) so tapping a specific dept still jumps straight to that channel.
+8. **`src/components/home/PeerPartnerCardSingle.tsx` / `Trio.tsx` / `Waiting.tsx`** — strip outer `rounded-xl border bg-card p-5`. Single → BentoTile routes to `/member/:partnerId`; Trio → keep per-row buttons with `stopPropagation`, tile itself routes to `/me`; Waiting → tile routes to `/me`.
+9. **New `src/components/home/RecentRunsTile.tsx`** — wraps `RecentRunsFeed` with a "Latest runs" heading and "View all" hint; whole tile → `/fitness#runs`.
+10. **`src/pages/Me.tsx`** — add `id="tier"` anchor on the `TierProgressChecklist` wrapper and a `useEffect` hash-scroll handler (mirroring the `#bio` pattern already in `Account.tsx`).
+11. **`src/pages/Fitness.tsx`** — add `id="challenge"` and `id="runs"` anchors on the relevant sections plus a hash-scroll `useEffect`.
 
-- `src/pages/Me.tsx` — full rewrite of layout
-- `src/pages/Account.tsx` — add DepartmentSelector + SignOutButton sections
-- `src/components/me/ProfileHeader.tsx` — delete (replaced by PublicProfileHeader)
-- `src/components/member/BioCard.tsx` — add optional `isOwnProfile` prop with empty-state CTA
-- No DB / RLS / edge function changes
+## What we're NOT doing
+- Not installing `framer-motion`.
+- Not copying the demo's Doc Hands / Integrations / Feature Tags slots.
+- Not changing data hooks, RLS, or the bottom tab nav.
+- Not changing `/me` layout beyond adding the `#tier` anchor.
 
-### What this fixes
-
-- Closes the "I can see everyone but myself" gap
-- Makes /me feel like a profile (familiar Instagram pattern) rather than a settings drawer
-- Keeps power-user controls one tap away (gear icon, Edit profile button) without cluttering the profile view
-- /account becomes the single home for *all* settings (profile edit, departments, integrations, sign out, danger zone)
+## Mobile QA (390×822)
+- `CircularProgress` (180px) fits inside full-width hero tile (~358px).
+- Stat tiles ~170×170, paired cleanly side-by-side.
+- Tap targets ≥ 44px; nested buttons (Strava, Log Run, dept rows) don't bubble to tile navigation.
+- Empty states (no peer, no runs, no depts) still look intentional inside their tile.
+- Keyboard: each tile is focusable with visible ring; Enter/Space navigates.

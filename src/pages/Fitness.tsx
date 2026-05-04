@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,20 +8,29 @@ import LogActivityDialog from "@/components/fitness/LogActivityDialog";
 import MyRecentSubmissions from "@/components/fitness/MyRecentSubmissions";
 import MonthlyLeaderboard from "@/components/fitness/MonthlyLeaderboard";
 import ForfeitWatchlist from "@/components/fitness/ForfeitWatchlist";
+import RecentRunsFeed from "@/components/home/RecentRunsFeed";
 import { getMyWeeklySubmissionCount } from "@/api/submissions";
 import { currentSastMondayISO } from "@/api/fitness";
 
 export default function Fitness() {
   const weekStart = currentSastMondayISO();
+  const location = useLocation();
   const { data: weekCount } = useQuery({
     queryKey: ["myWeeklyCount", weekStart],
     queryFn: () => getMyWeeklySubmissionCount(weekStart),
     staleTime: 30_000,
   });
 
+  useEffect(() => {
+    const id = location.hash.replace("#", "");
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [location.hash]);
+
   return (
     <div className="p-4 space-y-5 max-w-md mx-auto">
-      <Card>
+      <Card id="challenge" className="scroll-mt-20">
         <CardHeader className="pb-2"><CardTitle className="text-base">Log activity</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <LogActivityDialog trigger={
@@ -36,6 +47,12 @@ export default function Fitness() {
       </Card>
       <MonthlyLeaderboard />
       <ForfeitWatchlist />
+      <Card id="runs" className="scroll-mt-20">
+        <CardHeader className="pb-2"><CardTitle className="text-base">Latest runs from the brotherhood</CardTitle></CardHeader>
+        <CardContent>
+          <RecentRunsFeed />
+        </CardContent>
+      </Card>
     </div>
   );
 }

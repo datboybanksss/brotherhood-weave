@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useCurrentPeerPartner } from "@/hooks/useCurrentPeerPartner";
 import WelcomeHeader from "@/components/home/WelcomeHeader";
 import PeerPartnerCard from "@/components/home/PeerPartnerCard";
 import TierProgressMini from "@/components/home/TierProgressMini";
@@ -10,10 +11,13 @@ import DepartmentsCard from "@/components/home/DepartmentsCard";
 import CollectiveChallengeCard from "@/components/home/CollectiveChallengeCard";
 import FitnessHubCard from "@/components/home/FitnessHubCard";
 import BrotherhoodCard from "@/components/home/BrotherhoodCard";
+import RecentRunsTile from "@/components/home/RecentRunsTile";
+import { BentoGrid, BentoTile } from "@/components/home/BentoGrid";
 import OnboardingModal from "@/components/onboarding/OnboardingModal";
 
 export default function Home() {
   const { data: appUser } = useCurrentUser();
+  const { data: peer } = useCurrentPeerPartner();
   const qc = useQueryClient();
   const [onboardingOpen, setOnboardingOpen] = useState(false);
 
@@ -36,15 +40,89 @@ export default function Home() {
     toast.success("Welcome aboard!");
   };
 
+  const peerDestination =
+    peer?.partners.length === 1 ? `/member/${peer.partners[0].id}` : "/me";
+  const showTier = appUser.tiers?.name === "Foundation";
+
   return (
-    <div className="p-4 space-y-5 max-w-md mx-auto">
-      <WelcomeHeader user={appUser} />
-      <PeerPartnerCard />
-      <DepartmentsCard />
-      <BrotherhoodCard />
-      <FitnessHubCard />
-      <CollectiveChallengeCard />
-      <TierProgressMini />
+    <div className="p-4 max-w-md md:max-w-4xl mx-auto">
+      <BentoGrid>
+        <BentoTile colBase={2} colMd={4} to="/account" ariaLabel="Account settings">
+          <WelcomeHeader user={appUser} />
+        </BentoTile>
+
+        <BentoTile
+          colBase={2}
+          colMd={2}
+          variant="hero"
+          to={peerDestination}
+          ariaLabel="Open peer profile"
+        >
+          <PeerPartnerCard />
+        </BentoTile>
+
+        <BentoTile
+          colBase={2}
+          colMd={2}
+          rowMd={2}
+          variant="hero"
+          to="/fitness#challenge"
+          ariaLabel="Open 100km challenge"
+        >
+          <CollectiveChallengeCard />
+        </BentoTile>
+
+        <BentoTile
+          colBase={1}
+          colMd={1}
+          variant="stat"
+          to="/brotherhood"
+          ariaLabel="Open brotherhood"
+        >
+          <BrotherhoodCard />
+        </BentoTile>
+
+        {showTier && (
+          <BentoTile
+            colBase={1}
+            colMd={1}
+            variant="stat"
+            to="/me#tier"
+            ariaLabel="Open tier progress"
+          >
+            <TierProgressMini />
+          </BentoTile>
+        )}
+
+        <BentoTile
+          colBase={2}
+          colMd={2}
+          to="/communities"
+          ariaLabel="Open communities"
+        >
+          <DepartmentsCard />
+        </BentoTile>
+
+        <BentoTile
+          colBase={1}
+          colMd={1}
+          variant="stat"
+          to="/fitness"
+          ariaLabel="Open fitness"
+        >
+          <FitnessHubCard />
+        </BentoTile>
+
+        <BentoTile
+          colBase={2}
+          colMd={4}
+          to="/fitness#runs"
+          ariaLabel="See latest runs"
+        >
+          <RecentRunsTile />
+        </BentoTile>
+      </BentoGrid>
+
       <OnboardingModal
         open={onboardingOpen}
         onClose={() => setOnboardingOpen(false)}
