@@ -9,12 +9,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { updateProfile, uploadAvatar } from "@/api/account";
 import type { AppUser } from "@/hooks/useCurrentUser";
 
 const schema = z.object({
   full_name: z.string().min(2, "Name must be at least 2 characters"),
   bio: z.string().max(280, "Bio must be 280 characters or less").optional(),
+  title: z.string().max(80, "Title must be 80 characters or less").optional(),
+  current_city: z.string().max(50, "City must be 50 characters or less").optional(),
+  email_visible: z.boolean().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -25,11 +29,19 @@ export default function EditProfileForm({ user }: { user: AppUser }) {
   const cameraRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { full_name: user.full_name, bio: user.bio ?? "" },
+    defaultValues: {
+      full_name: user.full_name,
+      bio: user.bio ?? "",
+      title: user.title ?? "",
+      current_city: user.current_city ?? "",
+      email_visible: user.email_visible ?? false,
+    },
   });
   const bioValue = watch("bio") ?? "";
+  const titleValue = watch("title") ?? "";
+  const emailVisible = watch("email_visible") ?? false;
 
   const avatarMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -48,7 +60,14 @@ export default function EditProfileForm({ user }: { user: AppUser }) {
   });
 
   const mutation = useMutation({
-    mutationFn: (data: FormData) => updateProfile(user.id, { full_name: data.full_name, avatar_url: user.avatar_url, bio: data.bio ?? null }),
+    mutationFn: (data: FormData) => updateProfile(user.id, {
+      full_name: data.full_name,
+      avatar_url: user.avatar_url,
+      bio: data.bio ?? null,
+      title: data.title ?? null,
+      current_city: data.current_city ?? null,
+      email_visible: data.email_visible ?? false,
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
       queryClient.invalidateQueries({ queryKey: ["publicMember", user.id] });
@@ -91,6 +110,25 @@ export default function EditProfileForm({ user }: { user: AppUser }) {
       </div>
 
       <div className="space-y-1">
+        <Label htmlFor="title">What you do</Label>
+        <Input id="title" maxLength={80} placeholder="Final year medical student at Wits" {...register("title")} />
+        <div className="flex justify-between">
+          <p className="text-xs text-muted-foreground">Visible to other members.</p>
+          {titleValue.length > 60 && (
+            <p className="text-xs text-muted-foreground">{titleValue.length}/80</p>
+          )}
+        </div>
+        {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
+      </div>
+
+      <div className="space-y-1">
+        <Label htmlFor="current_city">Current city</Label>
+        <Input id="current_city" maxLength={50} placeholder="Johannesburg" {...register("current_city")} />
+        <p className="text-xs text-muted-foreground">Optional. Helps brothers in your city find you.</p>
+        {errors.current_city && <p className="text-xs text-destructive">{errors.current_city.message}</p>}
+      </div>
+
+      <div className="space-y-1">
         <Label htmlFor="bio">Bio</Label>
         <Textarea
           id="bio"
@@ -104,6 +142,18 @@ export default function EditProfileForm({ user }: { user: AppUser }) {
           <p className="text-xs text-muted-foreground">{bioValue.length}/280</p>
         </div>
         {errors.bio && <p className="text-xs text-destructive">{errors.bio.message}</p>}
+      </div>
+
+      <div className="flex items-start justify-between gap-3 rounded-md border border-border p-3">
+        <div className="space-y-0.5">
+          <Label htmlFor="email_visible" className="cursor-pointer">Show my email on my public profile</Label>
+          <p className="text-xs text-muted-foreground">Off by default. Toggle off anytime.</p>
+        </div>
+        <Switch
+          id="email_visible"
+          checked={emailVisible}
+          onCheckedChange={(v) => setValue("email_visible", v, { shouldDirty: true })}
+        />
       </div>
 
       <Button type="submit" className="w-full min-h-[48px]" disabled={mutation.isPending}>

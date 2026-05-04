@@ -5,9 +5,10 @@ interface MemberRowProps {
   userId: string;
   fullName: string;
   departmentName: string | null;
+  title?: string | null;
 }
 
-export default function MemberRow({ userId, fullName, departmentName }: MemberRowProps) {
+export default function MemberRow({ userId, fullName, departmentName, title }: MemberRowProps) {
   return (
     <Link
       to={`/member/${userId}`}
@@ -16,6 +17,7 @@ export default function MemberRow({ userId, fullName, departmentName }: MemberRo
       <Avatar userId={userId} size="md" />
       <div className="min-w-0">
         <p className="font-medium text-foreground truncate">{fullName}</p>
+        {title && <p className="text-xs text-muted-foreground truncate">{title}</p>}
         {departmentName && (
           <p className="text-xs text-muted-foreground">{departmentName}</p>
         )}

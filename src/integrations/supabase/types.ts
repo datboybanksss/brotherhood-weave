@@ -820,6 +820,45 @@ export type Database = {
           },
         ]
       }
+      profile_photos: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_order: number
+          id?: string
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_photos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_photos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       strava_connections: {
         Row: {
           access_token: string
@@ -1146,7 +1185,9 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          current_city: string | null
           email: string
+          email_visible: boolean
           full_name: string
           id: string
           interview_booked_at: string | null
@@ -1158,12 +1199,15 @@ export type Database = {
           payment_status: Database["public"]["Enums"]["payment_status_enum"]
           rejected_at: string | null
           tier_id: string | null
+          title: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          current_city?: string | null
           email: string
+          email_visible?: boolean
           full_name: string
           id: string
           interview_booked_at?: string | null
@@ -1175,12 +1219,15 @@ export type Database = {
           payment_status?: Database["public"]["Enums"]["payment_status_enum"]
           rejected_at?: string | null
           tier_id?: string | null
+          title?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          current_city?: string | null
           email?: string
+          email_visible?: boolean
           full_name?: string
           id?: string
           interview_booked_at?: string | null
@@ -1192,6 +1239,7 @@ export type Database = {
           payment_status?: Database["public"]["Enums"]["payment_status_enum"]
           rejected_at?: string | null
           tier_id?: string | null
+          title?: string | null
         }
         Relationships: [
           {
@@ -1264,28 +1312,37 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string | null
+          current_city: string | null
+          email_visible: boolean | null
           full_name: string | null
           id: string | null
           membership_started_at: string | null
           tier_id: string | null
+          title: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
+          current_city?: string | null
+          email_visible?: boolean | null
           full_name?: string | null
           id?: string | null
           membership_started_at?: string | null
           tier_id?: string | null
+          title?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
+          current_city?: string | null
+          email_visible?: boolean | null
           full_name?: string | null
           id?: string | null
           membership_started_at?: string | null
           tier_id?: string | null
+          title?: string | null
         }
         Relationships: [
           {
@@ -1371,6 +1428,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      reorder_profile_photos: {
+        Args: { _photo_ids: string[] }
+        Returns: undefined
       }
     }
     Enums: {

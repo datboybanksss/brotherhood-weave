@@ -8,6 +8,7 @@ import AccountProfileHeader from "@/components/account/AccountProfileHeader";
 import StatusTracker from "@/components/account/StatusTracker";
 import MembershipInfo from "@/components/account/MembershipInfo";
 import EditProfileForm from "@/components/account/EditProfileForm";
+import PhotoGalleryEditor from "@/components/account/PhotoGalleryEditor";
 import StravaConnection from "@/components/account/StravaConnection";
 import DangerZone from "@/components/account/DangerZone";
 import DepartmentSelector from "@/components/me/DepartmentSelector";
@@ -68,6 +69,7 @@ export default function Account() {
         <div ref={editFormRef}>
           <EditProfileForm user={appUser} />
         </div>
+        <PhotoGalleryEditor userId={appUser.id} />
         <DepartmentSelector />
         <StravaConnection />
         {isPaid && (
