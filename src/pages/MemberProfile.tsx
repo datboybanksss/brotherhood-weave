@@ -5,6 +5,7 @@ import { getPublicMemberById, getMemberDepartments } from "@/api/members";
 import PublicProfileHeader from "@/components/member/PublicProfileHeader";
 import BioCard from "@/components/member/BioCard";
 import LatestRunCard from "@/components/member/LatestRunCard";
+import PhotoGallery from "@/components/member/PhotoGallery";
 import { Badge } from "@/components/ui/badge";
 
 export default function MemberProfile() {
@@ -43,6 +44,7 @@ export default function MemberProfile() {
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
       <PublicProfileHeader member={member} primaryDept={primary} />
+      <PhotoGallery userId={member.id} />
       <div className="space-y-2">
         <h2 className="text-sm font-semibold text-foreground">About</h2>
         <BioCard bio={member.bio} />
