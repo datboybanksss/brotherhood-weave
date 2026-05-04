@@ -3,9 +3,9 @@ import { Home, BookOpen, Dumbbell, User, MessageSquare } from "lucide-react";
 import { useTotalUnreadCount } from "@/hooks/useTotalUnreadCount";
 
 const tabs = [
-  { to: "/home", icon: Home, label: "Home" },
   { to: "/library", icon: BookOpen, label: "Library" },
   { to: "/communities", icon: MessageSquare, label: "Communities" },
+  { to: "/home", icon: Home, label: "Home" },
   { to: "/fitness", icon: Dumbbell, label: "Fitness" },
   { to: "/me", icon: User, label: "Me" },
 ];
