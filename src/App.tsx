@@ -27,10 +27,13 @@ import AdminModulesList from "@/pages/admin/ModulesList";
 import ModuleForm from "@/pages/admin/ModuleForm";
 import LessonForm from "@/pages/admin/LessonForm";
 import AdminPairings from "@/pages/admin/Pairings";
+import InvitationsAdmin from "@/pages/admin/InvitationsAdmin";
 import MemberProfile from "@/pages/MemberProfile";
 import Fitness from "@/pages/Fitness";
 import Communities from "@/pages/Communities";
 import ChannelView from "@/pages/ChannelView";
+import AuthCallback from "@/pages/AuthCallback";
+import InviteRedemption from "@/pages/InviteRedemption";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +45,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/invite/:token" element={<InviteRedemption />} />
             <Route element={<RouteGuard />}>
               <Route path="/" element={<Navigate to="/home" replace />} />
               <Route path="/signup" element={<Signup />} />
@@ -62,6 +67,7 @@ const App = () => (
               <Route path="/admin/modules/:moduleId/lessons/new" element={<LessonForm />} />
               <Route path="/admin/modules/:moduleId/lessons/:lessonId/edit" element={<LessonForm />} />
               <Route path="/admin/pairings" element={<AdminPairings />} />
+              <Route path="/admin/invitations" element={<InvitationsAdmin />} />
               <Route element={<PaidLayout />}>
                 <Route path="/home" element={<Home />} />
                 <Route path="/library" element={<Library />} />

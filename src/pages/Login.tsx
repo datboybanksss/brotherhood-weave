@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import AuthDivider from "@/components/auth/AuthDivider";
 
 const schema = z.object({
   email: z.string().email("Invalid email"),
@@ -57,6 +59,8 @@ export default function Login() {
         <p className="text-sm text-center text-muted-foreground">
           New here? <Link to="/signup" className="text-primary underline">Sign up</Link>
         </p>
+        <AuthDivider />
+        <GoogleSignInButton />
       </div>
     </div>
   );

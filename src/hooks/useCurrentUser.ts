@@ -16,6 +16,8 @@ export interface AppUser {
   is_admin: boolean;
   rejected_at: string | null;
   created_at: string;
+  onboarded_at: string | null;
+  invited_via_token: string | null;
   tiers: { name: string; ring_color: string; display_order: number } | null;
 }
 
