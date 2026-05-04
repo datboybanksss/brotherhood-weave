@@ -92,6 +92,8 @@ export async function createLesson(values: {
   body_markdown?: string;
   worksheet_pdf_url?: string;
   duration_seconds?: number;
+  is_released?: boolean;
+  release_date?: string | null;
 }) {
   const { error } = await supabase.from("lessons").insert(values);
   if (error) throw error;
@@ -106,6 +108,8 @@ export async function updateLesson(
     body_markdown?: string | null;
     worksheet_pdf_url?: string | null;
     duration_seconds?: number | null;
+    is_released?: boolean;
+    release_date?: string | null;
   }
 ) {
   const { error } = await supabase.from("lessons").update(values).eq("id", id);
