@@ -14,15 +14,23 @@ export async function uploadAvatar(userId: string, file: File): Promise<string> 
   return `${data.publicUrl}?t=${Date.now()}`;
 }
 
-export async function updateProfile(userId: string, data: { full_name: string; avatar_url: string | null; bio?: string | null }) {
-  const { error } = await supabase
-    .from("users")
-    .update({
-      full_name: data.full_name,
-      avatar_url: data.avatar_url || null,
-      ...(data.bio !== undefined ? { bio: data.bio || null } : {}),
-    })
-    .eq("id", userId);
+export async function updateProfile(userId: string, data: {
+  full_name: string;
+  avatar_url: string | null;
+  bio?: string | null;
+  title?: string | null;
+  current_city?: string | null;
+  email_visible?: boolean;
+}) {
+  const payload: Record<string, unknown> = {
+    full_name: data.full_name,
+    avatar_url: data.avatar_url || null,
+  };
+  if (data.bio !== undefined) payload.bio = data.bio || null;
+  if (data.title !== undefined) payload.title = data.title || null;
+  if (data.current_city !== undefined) payload.current_city = data.current_city || null;
+  if (data.email_visible !== undefined) payload.email_visible = data.email_visible;
+  const { error } = await (supabase as any).from("users").update(payload).eq("id", userId);
   if (error) throw error;
 }
 
