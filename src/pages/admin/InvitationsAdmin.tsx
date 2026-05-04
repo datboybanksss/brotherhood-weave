@@ -31,13 +31,13 @@ interface Invitation {
 const schema = z.object({
   full_name: z.string().trim().min(2, "Name required").max(100),
   email: z.string().trim().email("Invalid email").max(255),
-  is_admin: z.boolean().default(false),
-  expires_in_days: z.coerce.number().int().min(1).max(365).default(30),
+  is_admin: z.boolean(),
+  expires_in_days: z.coerce.number().int().min(1).max(365),
 });
 type FormData = z.infer<typeof schema>;
 
 function generateToken() {
-  return crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().replaceAll("-", "");
+  return crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
 }
 
 function classify(inv: Invitation): "active" | "used" | "expired" | "revoked" {
