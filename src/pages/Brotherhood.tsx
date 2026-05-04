@@ -12,7 +12,7 @@ export default function Brotherhood() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("users")
-        .select("id, full_name, avatar_url, tier_id, user_departments(department_id, is_primary, departments(name))")
+        .select("id, full_name, avatar_url, tier_id, title, user_departments(department_id, is_primary, departments(name))")
         .eq("payment_status", "paid");
       if (error) throw error;
       return data;
@@ -46,6 +46,7 @@ export default function Brotherhood() {
               key={member.id}
               userId={member.id}
               fullName={member.full_name}
+              title={(member as { title: string | null }).title}
               departmentName={primaryDept?.departments?.name ?? null}
             />
           );
