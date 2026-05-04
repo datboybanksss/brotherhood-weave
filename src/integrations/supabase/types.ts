@@ -361,7 +361,9 @@ export type Database = {
           display_order: number
           duration_seconds: number | null
           id: string
+          is_released: boolean
           module_id: string
+          release_date: string | null
           title: string
           video_url: string | null
           worksheet_pdf_url: string | null
@@ -371,7 +373,9 @@ export type Database = {
           display_order: number
           duration_seconds?: number | null
           id?: string
+          is_released?: boolean
           module_id: string
+          release_date?: string | null
           title: string
           video_url?: string | null
           worksheet_pdf_url?: string | null
@@ -381,7 +385,9 @@ export type Database = {
           display_order?: number
           duration_seconds?: number | null
           id?: string
+          is_released?: boolean
           module_id?: string
+          release_date?: string | null
           title?: string
           video_url?: string | null
           worksheet_pdf_url?: string | null
