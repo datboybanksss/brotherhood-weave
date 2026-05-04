@@ -2,7 +2,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { getLessonsByModule, getUserLessonProgress } from "@/api/lessons";
+import { getLessonsByModule, getUserLessonProgress, getLessonReleaseStatus } from "@/api/lessons";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import LessonRow from "@/components/library/LessonRow";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,11 @@ export default function ModuleDetail() {
   const completedSet = new Set(progress?.filter((p) => p.completed_at).map((p) => p.lesson_id));
 
   function getStatus(index: number, lessonId: string) {
+    const lesson = lessons![index];
+    const release = getLessonReleaseStatus(lesson);
     if (completedSet.has(lessonId)) return "complete" as const;
+    if (release === "scheduled") return "scheduled" as const;
+    if (release === "locked") return "locked" as const;
     if (index === 0) return "available" as const;
     const prevLesson = lessons![index - 1];
     return completedSet.has(prevLesson.id) ? "available" as const : "locked" as const;
@@ -63,6 +67,7 @@ export default function ModuleDetail() {
             index={i + 1}
             title={lesson.title}
             status={getStatus(i, lesson.id)}
+            releaseDate={lesson.release_date}
             onTap={() => navigate(`/library/module/${slug}/lesson/${i + 1}`)}
           />
         ))}
