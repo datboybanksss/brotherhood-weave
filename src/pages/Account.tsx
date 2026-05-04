@@ -11,7 +11,6 @@ import EditProfileForm from "@/components/account/EditProfileForm";
 import StravaConnection from "@/components/account/StravaConnection";
 import DangerZone from "@/components/account/DangerZone";
 import DepartmentSelector from "@/components/me/DepartmentSelector";
-import SignOutButton from "@/components/me/SignOutButton";
 import OnboardingModal from "@/components/onboarding/OnboardingModal";
 import { Button } from "@/components/ui/button";
 
@@ -76,7 +75,6 @@ export default function Account() {
             <PlayCircle className="mr-2 h-4 w-4" /> Rewatch onboarding video
           </Button>
         )}
-        <SignOutButton />
         <DangerZone />
       </div>
       <OnboardingModal
