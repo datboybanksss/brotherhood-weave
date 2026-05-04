@@ -8,6 +8,9 @@ export interface PublicMember {
   membership_started_at: string | null;
   bio: string | null;
   created_at: string;
+  title: string | null;
+  current_city: string | null;
+  email_visible: boolean;
 }
 
 export async function getPublicMemberById(id: string): Promise<PublicMember | null> {
