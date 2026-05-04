@@ -32,7 +32,7 @@ const schema = z.object({
   full_name: z.string().trim().min(2, "Name required").max(100),
   email: z.string().trim().email("Invalid email").max(255),
   is_admin: z.boolean(),
-  expires_in_days: z.coerce.number().int().min(1).max(365),
+  expires_in_days: z.number().int().min(1).max(365),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -152,7 +152,7 @@ export default function InvitationsAdmin() {
             </div>
             <div className="space-y-1">
               <Label htmlFor="expires_in_days">Expires in (days)</Label>
-              <Input id="expires_in_days" type="number" min={1} max={365} {...register("expires_in_days")} />
+              <Input id="expires_in_days" type="number" min={1} max={365} {...register("expires_in_days", { valueAsNumber: true })} />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="is_admin" className="cursor-pointer">Grant admin access</Label>
