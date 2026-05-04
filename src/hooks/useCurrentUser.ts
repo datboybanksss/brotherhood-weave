@@ -18,6 +18,9 @@ export interface AppUser {
   created_at: string;
   onboarded_at: string | null;
   invited_via_token: string | null;
+  title: string | null;
+  current_city: string | null;
+  email_visible: boolean;
   tiers: { name: string; ring_color: string; display_order: number } | null;
 }
 
