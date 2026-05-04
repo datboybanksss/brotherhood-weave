@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, PlayCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -10,6 +10,8 @@ import MembershipInfo from "@/components/account/MembershipInfo";
 import EditProfileForm from "@/components/account/EditProfileForm";
 import StravaConnection from "@/components/account/StravaConnection";
 import DangerZone from "@/components/account/DangerZone";
+import DepartmentSelector from "@/components/me/DepartmentSelector";
+import SignOutButton from "@/components/me/SignOutButton";
 import OnboardingModal from "@/components/onboarding/OnboardingModal";
 import { Button } from "@/components/ui/button";
 
@@ -19,6 +21,15 @@ export default function Account() {
   const qc = useQueryClient();
   const { data: appUser } = useCurrentUser();
   const [rewatchOpen, setRewatchOpen] = useState(false);
+  const editFormRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (window.location.hash === "#bio" && editFormRef.current) {
+      editFormRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      const bioEl = editFormRef.current.querySelector<HTMLTextAreaElement>("#bio");
+      bioEl?.focus();
+    }
+  }, [appUser]);
 
   useEffect(() => {
     const status = params.get("strava");
@@ -55,13 +66,17 @@ export default function Account() {
         <AccountProfileHeader user={appUser} />
         {showTracker && <StatusTracker user={appUser} />}
         <MembershipInfo user={appUser} />
-        <EditProfileForm user={appUser} />
+        <div ref={editFormRef}>
+          <EditProfileForm user={appUser} />
+        </div>
+        <DepartmentSelector />
         <StravaConnection />
         {isPaid && (
           <Button variant="outline" className="w-full justify-start" onClick={() => setRewatchOpen(true)}>
             <PlayCircle className="mr-2 h-4 w-4" /> Rewatch onboarding video
           </Button>
         )}
+        <SignOutButton />
         <DangerZone />
       </div>
       <OnboardingModal

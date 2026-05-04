@@ -1,45 +1,83 @@
-## Goal
-When an admin creates an invitation, automatically email the invitee a branded message with their personal `/invite/{token}` link. Each invitation row also gets a "Resend email" button.
+## The gap
 
-## 1. Email infrastructure (one-time setup)
-- Configure a sender domain via the email setup dialog (you'll add 2 NS records at your domain registrar — takes ~5 min, then DNS verifies in the background).
-- Set up Lovable's email queue/infrastructure (queues, suppression, send log, cron).
-- Scaffold transactional email Edge Functions (`send-transactional-email`, `handle-email-unsubscribe`, `handle-email-suppression`) and a registry for templates.
-- Create the unsubscribe page at `/unsubscribe` so the auto-appended unsubscribe footer works.
+Right now `/me` is a settings/control panel — it shows your avatar, tier progress, departments selector, admin links, sign out. But there's no way for you to see what *other members* see when they tap your profile from Brotherhood. `MemberProfile` (`/member/:id`) shows: header (avatar, tier, primary dept, member since) → bio → all department badges → latest run.
 
-## 2. Invitation email template
-- New React Email template `invitation.tsx` in `_shared/transactional-email-templates/`:
-  - Subject: "You've been invited to Family Ties"
-  - Greeting using invitee's full name
-  - Short brotherhood intro paragraph (matches the app's brand voice)
-  - Big CTA button → `https://<app>/invite/{token}`
-  - Plain-text fallback link
-  - Mentions expiry date
-  - Brand styling pulled from `src/index.css` (Family Ties palette, white body bg as required)
-- Register it in `registry.ts` as `invitation`.
+Members can preview other people but not themselves. That's the asymmetry to fix.
 
-## 3. Auto-send on create (admin invitations page)
-In `src/pages/admin/InvitationsAdmin.tsx`, after the `invitations` row is inserted:
-- Call `supabase.functions.invoke('send-transactional-email', { body: { templateName: 'invitation', recipientEmail: inv.email, idempotencyKey: \`invite-${inv.id}\`, templateData: { fullName, inviteUrl, expiresAt } } })`
-- Toast shows "Invitation created and email sent to {email}" (link still copied to clipboard as backup)
-- If the email send fails, toast warns "Created, but email failed — use Resend"
+## Recommendation: Instagram-style "your profile is the page"
 
-## 4. Resend button on each row
-- Add a Resend (mail) icon button next to Copy/Revoke on Active-tab rows.
-- Calls the same edge function with idempotencyKey `invite-{id}-resend-{timestamp}` so it actually re-sends.
-- Toast confirms delivery.
+Convert `/me` into a **self-view of your public profile**, with private controls tucked behind clear affordances — exactly how Instagram does it.
 
-## 5. Track send status (optional polish)
-- Surface the latest `email_send_log` status per invitation in the row (e.g. small "Sent ✓" / "Failed" label) by querying by `idempotencyKey` prefix.
+### New /me layout (top to bottom)
 
-## Smoke tests
-1. Domain shows verified in Cloud → Emails (or "verifying" — emails will start sending once DNS resolves).
-2. Create invite for a real address you control → arrives within ~30s, branded, button works, lands on `/invite/:token`.
-3. Click Resend → second email arrives.
-4. Revoke an invite → status moves; email cannot be re-sent (button hidden).
-5. Unsubscribe link in footer goes to `/unsubscribe?token=...` and works.
+```text
+┌─────────────────────────────────┐
+│  ← (none)        ⚙ settings icon│  ← top bar
+│                                 │
+│         [Avatar w/ tier ring]   │
+│         Full Name               │
+│         [Tier Badge]            │
+│         Primary Dept · Joined   │
+│                                 │
+│  [ Edit profile ] [ Share ]     │  ← primary actions row
+│                                 │
+│  About                          │
+│  ┌───────────────────────────┐  │
+│  │ Bio text (or "Add a bio") │  │
+│  └───────────────────────────┘  │
+│                                 │
+│  Departments                    │
+│  [Dept] [Dept] [Dept]           │
+│                                 │
+│  Latest run                     │
+│  (LatestRunCard for self)       │
+│                                 │
+│  ─── Tier Progress ───          │  (only if Foundation)
+│  Ascend to Independent Thinker  │
+│  ☑ Attend 2 meetings…           │
+│                                 │
+│  ─── Admin ───                  │  (only if is_admin)
+│  Approvals · Modules · …        │
+└─────────────────────────────────┘
+```
 
-## Notes
-- No SMS in this sprint (you chose Email only). Easy to add later as a separate channel — would need Twilio connector + a `phone` column.
-- Until DNS verifies, invites are still created and links are copyable, but emails will queue and only send once the domain is active.
-- Suppression is automatic: if an invitee unsubscribes or the address bounces, future sends to that address are blocked.
+The page now **looks like** what other members see, with three additions a public viewer wouldn't get:
+1. A top-right **settings gear** (`⚙`) → navigates to `/account` (existing page already has Edit Profile form, Strava, danger zone, rewatch onboarding, etc.)
+2. An **Edit profile** button right under the header → also goes to `/account`, scrolled to the edit form
+3. **Tier progress** and **Admin** sections kept below the public view (private to you)
+
+### What moves where
+
+| Current location | New location |
+|---|---|
+| ProfileHeader on /me | Replaced by `PublicProfileHeader` (same component used on `/member/:id`) |
+| "Account settings" link at top | Becomes a gear icon top-right + "Edit profile" button |
+| TierProgressChecklist | Stays on /me, below the public view, only for Foundation |
+| DepartmentSelector (full picker grid) | **Moved to /account** — editing departments is a settings action. /me just shows them as badges (read-only) |
+| AdminSection | Stays on /me, below tier progress |
+| SignOutButton | **Moved to /account** (it already lives there implicitly via Sign out — actually it's only on /me today; move it to /account so /me stays clean) |
+
+### Details / technical notes
+
+- **Reuse `PublicProfileHeader`, `BioCard`, `LatestRunCard`** — same components as `MemberProfile.tsx`, fed with the current user's data. This guarantees the self-view is byte-identical to what others see.
+- Pull self data via `getPublicMemberById(appUser.id)` so any RLS/view-layer filtering applied to the public view also applies to the self-view (true WYSIWYG).
+- **Share button**: copies a link to `/member/{id}` to clipboard via `navigator.clipboard` + sonner toast. No new infra.
+- **Edit profile button** + gear icon: both navigate to `/account`. The gear is in the top-right corner of /me (`absolute top-4 right-4` style).
+- **Add empty state for bio**: if `bio` is null, `BioCard` shows "No bio yet" — for self-view, swap that to a tappable "Add a bio" CTA that navigates to `/account#bio`.
+- `Account.tsx` gains a `DepartmentSelector` section (between `EditProfileForm` and `StravaConnection`) and a `SignOutButton` near the bottom (above `DangerZone`). Both components already exist — just import them.
+- Optional polish: support `/account#bio` hash to scroll/focus the bio textarea on arrival from the empty-bio CTA.
+
+### Files touched
+
+- `src/pages/Me.tsx` — full rewrite of layout
+- `src/pages/Account.tsx` — add DepartmentSelector + SignOutButton sections
+- `src/components/me/ProfileHeader.tsx` — delete (replaced by PublicProfileHeader)
+- `src/components/member/BioCard.tsx` — add optional `isOwnProfile` prop with empty-state CTA
+- No DB / RLS / edge function changes
+
+### What this fixes
+
+- Closes the "I can see everyone but myself" gap
+- Makes /me feel like a profile (familiar Instagram pattern) rather than a settings drawer
+- Keeps power-user controls one tap away (gear icon, Edit profile button) without cluttering the profile view
+- /account becomes the single home for *all* settings (profile edit, departments, integrations, sign out, danger zone)
