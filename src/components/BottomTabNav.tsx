@@ -3,7 +3,7 @@ import { Home, BookOpen, Dumbbell, User, MessageSquare } from "lucide-react";
 import { useTotalUnreadCount } from "@/hooks/useTotalUnreadCount";
 
 const tabs = [
-  { to: "/library", icon: BookOpen, label: "Library" },
+  { to: "/library", icon: BookOpen, label: "Knowledge Library" },
   { to: "/communities", icon: MessageSquare, label: "Communities" },
   { to: "/home", icon: Home, label: "Home" },
   { to: "/fitness", icon: Dumbbell, label: "Fitness" },
