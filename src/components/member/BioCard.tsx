@@ -1,7 +1,20 @@
-interface Props { bio: string | null }
+import { useNavigate } from "react-router-dom";
 
-export default function BioCard({ bio }: Props) {
+interface Props { bio: string | null; isOwnProfile?: boolean }
+
+export default function BioCard({ bio, isOwnProfile = false }: Props) {
+  const navigate = useNavigate();
   if (!bio) {
+    if (isOwnProfile) {
+      return (
+        <button
+          onClick={() => navigate("/account#bio")}
+          className="w-full rounded-lg border border-dashed border-border p-4 text-left text-sm text-muted-foreground italic hover:border-primary hover:text-foreground transition-colors"
+        >
+          + Add a bio
+        </button>
+      );
+    }
     return <p className="text-sm text-muted-foreground italic">No bio yet.</p>;
   }
   return (
