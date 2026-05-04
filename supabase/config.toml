@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.cleanup_fitness_videos]
 verify_jwt = false
+
+[functions.validate_invitation]
+verify_jwt = false
