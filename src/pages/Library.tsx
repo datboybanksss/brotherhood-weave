@@ -12,7 +12,7 @@ export default function Library() {
 
   return (
     <div className="p-6 space-y-4">
-      <h1 className="text-xl font-bold text-foreground">Library</h1>
+      <h1 className="text-xl font-bold text-foreground">Knowledge Library</h1>
       <Tabs value={layer} onValueChange={(v) => setParams({ layer: v })}>
         <TabsList className="w-full">
           <TabsTrigger value="core" className="flex-1">The Core</TabsTrigger>
