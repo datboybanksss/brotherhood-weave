@@ -105,7 +105,7 @@ export default function Home() {
 
         <BentoTile
           colBase={1}
-          colMd={1}
+          colMd={2}
           variant="stat"
           to="/fitness"
           ariaLabel="Open fitness"
