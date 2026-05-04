@@ -27,7 +27,7 @@ export default function BrotherhoodCard() {
         .eq("payment_status", "paid")
         .is("rejected_at", null)
         .order("created_at", { ascending: false })
-        .limit(3);
+        .limit(6);
       if (error) throw error;
       return data ?? [];
     },
@@ -39,15 +39,26 @@ export default function BrotherhoodCard() {
       <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
         <Users className="h-3.5 w-3.5" /> Brotherhood
       </div>
-      <div>
-        <div className="text-3xl font-bold leading-none text-foreground">{count ?? 0}</div>
-        <div className="text-xs text-muted-foreground mt-1">
-          {count === 1 ? "brother" : "brothers"}
+      <div className="flex items-end justify-between gap-3 mt-2">
+        <div>
+          <div className="text-3xl md:text-4xl font-bold leading-none text-foreground">{count ?? 0}</div>
+          <div className="text-xs text-muted-foreground mt-1">
+            {count === 1 ? "brother" : "brothers"}
+          </div>
         </div>
+        {recent && recent.length > 0 && (
+          <div className="hidden md:flex -space-x-1">
+            {recent.map((u) => (
+              <div key={u.id} className="rounded-full ring-[3px] ring-card">
+                <Avatar userId={u.id} size="sm" />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       {recent && recent.length > 0 && (
-        <div className="flex -space-x-1">
-          {recent.map((u) => (
+        <div className="flex -space-x-1 md:hidden mt-3">
+          {recent.slice(0, 3).map((u) => (
             <div key={u.id} className="rounded-full ring-[3px] ring-card">
               <Avatar userId={u.id} size="sm" />
             </div>
