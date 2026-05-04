@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Settings, Edit3, Share2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -15,6 +16,14 @@ import { Badge } from "@/components/ui/badge";
 export default function Me() {
   const { data: appUser } = useCurrentUser();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash === "#tier") {
+      const el = document.getElementById("tier");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [location.hash, appUser?.id]);
 
   const { data: member } = useQuery({
     queryKey: ["publicMember", appUser?.id],
@@ -99,7 +108,7 @@ export default function Me() {
       <LatestRunCard userId={appUser.id} />
 
       {showProgress && (
-        <div className="pt-4 border-t border-border">
+        <div id="tier" className="pt-4 border-t border-border scroll-mt-20">
           <TierProgressChecklist />
         </div>
       )}
