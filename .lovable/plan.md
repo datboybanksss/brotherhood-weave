@@ -1,142 +1,178 @@
+# Sprint plan: invites + onboarding modal + Google sign-in
 
-# Fitness Submissions Sprint (revised)
+## 1) Files to create or modify, grouped by task
 
-## Communication confirmations
+### Task 1 — Schema + access model
+Create / modify:
+- `supabase/migrations/<new_timestamp>_invitations_onboarding_google.sql`
+- `src/hooks/useCurrentUser.ts` (extend user shape for `onboarded_at`, `invited_via_token`)
+- `src/integrations/supabase/types.ts` (auto-generated after migration; not edited manually)
 
-**1. Storage bucket policies — user-folder-scoped uploads**
-Private `fitness-videos` bucket (`public=false`, 50MB, `video/mp4`+`video/quicktime`). Policies on `storage.objects`:
-- INSERT/UPDATE: `bucket_id='fitness-videos' AND (storage.foldername(name))[1] = auth.uid()::text`
-- DELETE: same, OR `is_current_user_admin()`
-- No SELECT policy → direct fetch returns 403. All client video access is via signed URLs from `get_submissions_signed`.
+Migration will:
+- create `public.invitations`
+- add admin-only RLS on `invitations`
+- add `users.onboarded_at`
+- add `users.invited_via_token`
+- add indexes and active-invite uniqueness
+- include the requested Google setup note with the exact callback URL
 
-**2. Visibility logic in `get_submissions_signed`**
-JWT-validated. For each row:
-- `public` → 1h signed URL
-- `private` AND viewer is owner OR admin → signed URL
-- otherwise → `video_url=null, video_locked=true`
-- no video → `video_url=null, video_locked=false`
+### Task 2 — Invitation edge functions
+Create:
+- `supabase/functions/validate_invitation/index.ts`
+- `supabase/functions/redeem_invitation/index.ts`
 
-**3. Leaderboard zero-submission rule**
-**Excluded.** `get_monthly_leaderboard` returns only `submission_count > 0`. Forfeit list already surfaces non-participants.
+These will:
+- validate token state for the public invite page
+- redeem via password flow or existing Google-authenticated user flow
+- enforce exact email match server-side
+- upgrade invited users into the paid/member state
+- handle repeat submits idempotently
 
----
+### Task 3 — Admin invitation management
+Create:
+- `src/pages/admin/Invitations.tsx`
+- `src/components/admin/InvitationsList.tsx`
+- `src/components/admin/InvitationRow.tsx`
+- `src/components/admin/InvitationForm.tsx`
+- `src/api/admin-invitations.ts`
+- `src/hooks/useAdminInvitations.ts`
 
-## Amendments applied
+Modify:
+- `src/components/me/AdminSection.tsx`
+- `src/App.tsx`
 
-### Amendment 1 — Atomic deletion safety
-`deleteSubmission` order is reversed and tolerant:
-1. `DELETE FROM submissions WHERE id = X` (RLS-protected, atomic). If this fails, surface the error and stop — nothing is lost.
-2. **Then** best-effort `storage.from('fitness-videos').remove([path])`. If this fails, `console.warn` and swallow the error — the row is already gone, so the user's UI is consistent.
+This adds `/admin/invitations`, the create/copy/revoke flow, and the new admin entry point.
 
-`cleanup_fitness_videos` is extended to also **sweep orphaned files**:
-- Pass A (existing): null `video_url` for rows where `submitted_at < now() - 90d AND video_retention='90_days'`, and delete those storage files.
-- Pass B (new): list every file in the `fitness-videos` bucket; for each path `{user_id}/{submission_id}.{ext}`, parse the `submission_id` and check `EXISTS(SELECT 1 FROM submissions WHERE id = submission_id AND video_url = path)`. If no matching row, delete the file. Returns `{ expired_nulled: N, orphans_swept: M }`.
+### Task 4 — Public invite redemption UI
+Create:
+- `src/pages/InviteRedeem.tsx`
+- `src/components/invite/InviteRedemptionForm.tsx`
+- `src/components/invite/InviteStatusMessage.tsx`
+- `src/api/invitations.ts`
 
-### Amendment 2 — Forfeit week anchor (Monday SAST)
-Explicit week semantics: **Monday 00:00 SAST → Sunday 23:59 SAST.** The Wednesday gate means the list goes live at **Wednesday 00:00 SAST** of the same week as the upcoming Saturday call.
+Modify:
+- `src/App.tsx`
+- `src/components/RouteGuard.tsx`
 
-Implementation in `ForfeitWatchlist.tsx`:
-```ts
-// SAST = UTC+2, no DST. We compute "now in SAST" by shifting,
-// then take startOfWeek with weekStartsOn=1 (Monday).
-// IMPORTANT: at year boundaries the SAST date can be one day ahead of UTC.
-// Always anchor to SAST before computing the week.
-import { startOfWeek, formatISO, getDay } from "date-fns";
-const SAST_OFFSET_MS = 2 * 60 * 60 * 1000;
-const nowSast = new Date(Date.now() + SAST_OFFSET_MS);
-const mondayOfWeek = startOfWeek(nowSast, { weekStartsOn: 1 });
-const weekStartISO = formatISO(mondayOfWeek, { representation: "date" }); // YYYY-MM-DD
-const sastDow = getDay(nowSast); // 0=Sun, 1=Mon, ..., 6=Sat
-const liveYet = sastDow === 0 || sastDow >= 3; // Wed/Thu/Fri/Sat/Sun
-```
-`weekStartISO` is passed to `get_weekly_forfeit_list(week_start date)`. The SQL function uses `submitted_at >= week_start AND submitted_at < week_start + interval '7 days'` (anchored at Monday 00:00 SAST converted to UTC by the planner via `timestamptz` semantics — we pass a `date`, Postgres interprets in session TZ; we'll set `SET LOCAL TIME ZONE 'Africa/Johannesburg'` inside the function to make this unambiguous).
+This adds the public `/invite/:token` route outside the gated member flow.
 
-A header comment in both `ForfeitWatchlist.tsx` and the SQL function documents the convention so timezone bugs are easier to debug at year-end.
+### Task 5 — Google sign-in
+Create:
+- `src/pages/AuthCallback.tsx`
+- `src/components/auth/GoogleSignInButton.tsx`
+- `src/components/auth/AuthDivider.tsx`
 
-### Amendment 3 — Soft-fail video upload in `LogActivityDialog`
-Reordered submit flow:
-1. Generate `submissionId = crypto.randomUUID()` client-side.
-2. INSERT the submission row with `id = submissionId, video_url = NULL` (and the chosen `video_retention`/`video_visibility` if a video was selected — these are stored even before upload so the retention sweep treats the eventual file correctly).
-3. If a video was selected, upload to `fitness-videos/{user_id}/{submissionId}.{ext}`.
-4. On upload success: `UPDATE submissions SET video_url = path WHERE id = submissionId`. Toast success.
-5. On upload failure: keep the row, toast `"Submission logged, but video upload failed."` with a **Retry** action that re-runs the upload + UPDATE against the existing row. Retry state is held in component state; if the user dismisses, the row stands as a no-video submission (still counts toward reps + leaderboard).
-6. If step 2 (the row INSERT) itself fails, no upload is attempted and the user gets `"Couldn't log submission: {message}"`.
+Modify:
+- `src/pages/Login.tsx`
+- `src/pages/Signup.tsx`
+- `src/pages/InviteRedeem.tsx`
+- `src/App.tsx`
+- `src/components/RouteGuard.tsx`
 
-This guarantees: **the user's rep count is never lost to a flaky video upload.**
+This adds Google as a secondary auth method on login, signup, and invite redemption.
 
----
+### Task 6 — Onboarding modal + rewatch
+Create:
+- `src/lib/onboarding-constants.ts`
+- `src/components/onboarding/OnboardingModal.tsx`
+- `src/api/onboarding.ts`
 
-## Files to create/modify
+Modify:
+- `src/pages/Home.tsx`
+- `src/pages/Account.tsx`
 
-### Migration — `supabase/migrations/<ts>_fitness_submissions.sql`
-- `submissions` table + CHECKs + 3 indexes
-- BEFORE INSERT trigger `enforce_submissions_user_id` (forces `user_id := auth.uid()` when JWT present)
-- RLS: SELECT (paid OR admin), INSERT (own), DELETE (own OR admin), no UPDATE policy for users — but we need owner UPDATE for the soft-fail retry. Add UPDATE policy: `auth.uid() = user_id` with `WITH CHECK` restricted to mutating only `video_url` (enforced via a BEFORE UPDATE trigger that rejects changes to any other column).
-- Storage bucket `fitness-videos` (private, 50MB, mp4/mov)
-- Storage policies (folder-scoped INSERT/UPDATE/DELETE; admin DELETE; no SELECT)
-- SQL functions:
-  - `get_monthly_leaderboard(month_start date)` — excludes zero-submission users; tie-break `score DESC, submission_count DESC, full_name ASC`
-  - `get_weekly_forfeit_list(week_start date)` — uses `Africa/Johannesburg` session TZ; sorts by `last_submission_at ASC NULLS FIRST`
-  - `get_user_weekly_streak(_user_id uuid)` — backward iteration in SAST
-  - `get_user_monthly_stats(_user_id uuid, month_start date)` — returns reps/submissions/videos/rank in one row
-- pg_cron schedule for `cleanup_fitness_videos` daily at 01:00 UTC
+This adds first-paid-login onboarding plus the rewatch entry on the account page.
 
-### Edge functions
-- `supabase/functions/cleanup_fitness_videos/index.ts` — service role; Pass A (90d retention) + Pass B (orphan sweep)
-- `supabase/functions/get_submissions_signed/index.ts` — JWT-validated; visibility-aware signed URL minting
+## 2) Google + invite flow: exact handling for the “auth user already exists” case
 
-### API + hooks
-- `src/api/submissions.ts` — `logSubmission` (returns id), `attachVideoToSubmission(id, path)`, `deleteSubmission(id, path?)` (row-first then best-effort storage), `uploadVideo(file, userId, submissionId)`, `getMyRecentSubmissions`
-- `src/api/fitness.ts` — `getMonthlyLeaderboard`, `getWeeklyForfeitList`, `getUserStreak`, `getUserMonthlyStats`, `getMemberSubmissionsSigned`
-- `src/hooks/useFitnessLeaderboard.ts`, `useForfeitList.ts`, `useMyMonthlyStats.ts`, `useMemberSubmissions.ts`
+Yes — the matched-email Google invite flow can be implemented safely without creating a duplicate user.
 
-### UI — Fitness page
-- `src/pages/Fitness.tsx`
-- `src/components/fitness/LogActivityDialog.tsx` (≤50 lines; orchestrates the row-first/upload-second/retry flow)
-- `src/components/fitness/ExerciseSelect.tsx`
-- `src/components/fitness/VideoUploader.tsx` (≤50 lines; validates duration ≤60s, size ≤50MB, MIME)
-- `src/components/fitness/MyRecentSubmissions.tsx`
-- `src/components/fitness/MonthlyLeaderboard.tsx`
-- `src/components/fitness/LeaderboardRow.tsx`
-- `src/components/fitness/ForfeitWatchlist.tsx` (Monday-SAST + Wednesday-gate logic, with explanatory comment)
-- `src/components/fitness/ForfeitRow.tsx`
-- `src/lib/exercises.ts` — enum, labels, icons, `isTimeBased(exercise)`
+Planned behavior:
+- On `/invite/:token`, tapping “Sign up with Google instead” stores `pending_invite_token` in `sessionStorage` and starts Google OAuth.
+- `/auth/callback` checks for that pending token after the Google session is established.
+- If the Google account email matches `invitation.email` exactly, the app calls `redeem_invitation` **with the existing signed-in user**.
+- In that branch, `redeem_invitation` will:
+  - validate the bearer token with `getClaims()`
+  - use the authenticated user as the target user
+  - **skip** `auth.admin.createUser`
+  - update the existing `users` row to `payment_status='paid'`, `interview_completed=true`, set `tier_id`, `is_admin`, `membership_started_at`, and `invited_via_token`
+  - mark the invitation as used by that user
+- If the token was already redeemed by that same user during a double-submit/retry window, the function returns success instead of failing. That is the idempotent path.
+- If the Google email does **not** match the invitation email, the callback signs the user out, clears the pending token, and sends them back to `/invite/:token?error=email_mismatch`.
 
-### Entry points
-- `src/components/home/FitnessHubCard.tsx` — placed below `CollectiveChallengeCard` in `Home.tsx`
-- `src/components/me/FitnessLink.tsx` — placed above "Account settings" in `Me.tsx`
-- `App.tsx` — add `<Route path="/fitness" element={<Fitness />} />` inside the `<PaidLayout>` block
+For the password flow, `redeem_invitation` still creates the auth user itself with `auth.admin.createUser`, then upgrades the resulting member record.
 
-### Public profile
-- `src/components/member/FitnessSection.tsx` — wires stats + activity log; rendered in `MemberProfile.tsx` below `LatestRunCard`
-- `src/components/member/FitnessStats.tsx`
-- `src/components/member/FitnessActivityRow.tsx`
-- `src/components/member/VideoPlayer.tsx` — inline `<video controls>`
+## 3) SAST date display confirmation
 
----
+Yes — invitation expiry display will stay consistent with the rest of the app.
 
-## Build order
+Plan:
+- store `expires_at` as a server-side `timestamptz`
+- render active invite expiry using the same relative-date pattern already used elsewhere (`formatDistanceToNow(..., { addSuffix: true })`)
+- render created dates with the same date-fns conventions already used in admin/member screens
+- avoid custom client-side timezone math for invites
 
-1. Migration (table, RLS incl. constrained owner UPDATE, trigger, bucket+policies, SQL functions, cron)
-2. `cleanup_fitness_videos` (Pass A + Pass B)
-3. `get_submissions_signed`
-4. `src/lib/exercises.ts`, `src/api/submissions.ts`, `src/api/fitness.ts`
-5. Hooks
-6. `LogActivityDialog` + `VideoUploader` + `ExerciseSelect` (with retry-on-failed-upload)
-7. `Fitness.tsx` + leaderboard/forfeit/recent components
-8. `App.tsx` route + `FitnessHubCard` + `FitnessLink`
-9. `FitnessSection` on `MemberProfile.tsx`
-10. Smoke tests (incl. amendment-specific cases below)
+Why this is safe:
+- the app already uses normal date-fns display formatting for most user-facing timestamps
+- the SAST-specific timezone logic in the app today is mainly for fitness week boundaries, not generic admin timestamps
+- relative expiry labels like “in 27 days” will remain correct for South Africa because the stored timestamp is authoritative and there is no DST complication here
 
-## Extra smoke tests for amendments
+## 4) Implementation approach
 
-- **A1a:** Delete a submission with a video → row gone immediately; storage file deleted shortly after; no UI flicker.
-- **A1b:** Simulate storage delete failure (e.g., wrong path) → row still gone; warning in console; next cron run sweeps the orphan.
-- **A1c:** Manually upload a file to `fitness-videos/{uid}/{random-uuid}.mp4` with no matching row → after `cleanup_fitness_videos` invocation, file is removed.
-- **A2a:** On Tuesday SAST, forfeit card shows "goes live Wednesday."
-- **A2b:** On Wednesday 00:01 SAST (UTC Tuesday 22:01), forfeit list is live and uses the Monday of the *current* SAST week.
-- **A2c:** Year-boundary case (Dec 31 SAST 23:30 = Dec 31 UTC 21:30) — `weekStartISO` resolves to the Monday of the SAST week, not the UTC week.
-- **A3a:** Network-disable Storage mid-submit → submission row appears in the feed; toast offers Retry; tapping Retry re-uploads + UPDATEs `video_url`.
-- **A3b:** Dismiss the retry → row remains as a no-video submission; rep count and leaderboard reflect it.
-- **A3c:** RLS check: try to UPDATE another user's submission's `video_url` → rejected by policy.
-- **A3d:** RLS check: try to UPDATE own submission's `reps` → rejected by the BEFORE UPDATE trigger.
+### Schema and security
+- Build `invitations` with admin-only RLS.
+- Keep token redemption off direct table access; the public invite flow goes only through backend functions.
+- Preserve the existing three-state gate; invited members bypass it by having their user row upgraded to paid + interview complete during redemption.
+
+### Routing updates
+- Add public routes for:
+  - `/invite/:token`
+  - `/auth/callback`
+- Keep them outside the auth-required member wrapper.
+- Update `RouteGuard` public paths accordingly so OAuth and invite pages are reachable pre-login.
+- Keep `/home` as the first paid destination.
+
+### Admin invitations UI
+- Reuse the existing mobile-first admin page pattern.
+- Add tabs for active vs used/expired/revoked.
+- New invite dialog validates name, email, tier, admin flag, and expiry window.
+- Copy full invite link immediately after creation.
+- Revoke uses confirmation dialog.
+
+### Invite redemption UX
+- `InviteRedeem` loads token state on mount.
+- Valid tokens show the locked email, password/confirm fields, and the Google alternative.
+- Used / expired / revoked / missing tokens show dedicated non-form states.
+- Email mismatch and token-state failures surface through clear toasts/messages.
+
+### Google auth UX
+- Add a reusable Google button and divider above the current email/password forms.
+- Keep email/password as-is beneath the divider.
+- `AuthCallback` decides among:
+  - paid existing member → `/home`
+  - normal new or pending user → `/interview`
+  - invite-in-progress Google user → redeem invite, then `/home`
+
+### Onboarding modal
+- Add a reusable `OnboardingModal` based on shadcn Dialog.
+- Auto-open on `/home` only when `payment_status === 'paid'` and `onboarded_at` is null.
+- Completion updates `onboarded_at`, invalidates current-user data, and prevents re-show.
+- Add an account-page “App tour” section that reopens the same modal in rewatch mode without updating onboarding state.
+
+## 5) Smoke-test checklist to run after implementation
+- Admin create/copy/revoke invite
+- Password redeem success
+- Email mismatch rejection
+- Reused invite state
+- Expired invite state
+- Revoked invite state
+- Google signup without invite → `/interview`
+- Google sign-in existing paid member → `/home`
+- Invite + Google success with matching email
+- Invite + Google mismatch → sign out + redirect back
+- First paid login auto-opens onboarding modal
+- Completing onboarding sets `onboarded_at`
+- Account-page rewatch opens modal without changing onboarding state
+
+## 6) Important note before implementation
+I’m currently in read-only plan mode, so I can’t produce the requested `<lov-code>` implementation block yet. Once you approve this plan, I’ll switch to build mode and implement the full sprint in one pass.
