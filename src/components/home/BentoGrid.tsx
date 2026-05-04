@@ -106,7 +106,7 @@ export function BentoTile({
     >
       {children}
       {navigable && variant === "stat" && (
-        <ChevronRight className="absolute bottom-3 right-3 h-4 w-4 text-muted-foreground" aria-hidden />
+        <ChevronRight className="absolute top-3 right-3 h-4 w-4 text-muted-foreground" aria-hidden />
       )}
     </div>
   );
