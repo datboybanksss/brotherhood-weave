@@ -82,6 +82,16 @@ export default function Home() {
           <BrotherhoodCard />
         </BentoTile>
 
+        <BentoTile
+          colBase={1}
+          colMd={1}
+          variant="stat"
+          to="/fitness"
+          ariaLabel="Open fitness"
+        >
+          <FitnessHubCard />
+        </BentoTile>
+
         {showTier && (
           <BentoTile
             colBase={1}
@@ -101,16 +111,6 @@ export default function Home() {
           ariaLabel="Open communities"
         >
           <DepartmentsCard />
-        </BentoTile>
-
-        <BentoTile
-          colBase={1}
-          colMd={1}
-          variant="stat"
-          to="/fitness"
-          ariaLabel="Open fitness"
-        >
-          <FitnessHubCard />
         </BentoTile>
 
         <BentoTile
