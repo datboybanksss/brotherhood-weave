@@ -16,34 +16,58 @@ export type Database = {
     Tables: {
       archives: {
         Row: {
+          body_markdown: string | null
+          content_type: string
+          cover_url: string | null
           created_at: string
           created_by: string | null
+          curator_note: string | null
           description: string | null
+          document_filename: string | null
+          document_url: string | null
+          domain: string | null
           id: string
           is_published: boolean
+          read_time_minutes: number | null
           recorded_at: string
-          recording_url: string
           title: string
+          video_url: string | null
         }
         Insert: {
+          body_markdown?: string | null
+          content_type?: string
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
+          curator_note?: string | null
           description?: string | null
+          document_filename?: string | null
+          document_url?: string | null
+          domain?: string | null
           id?: string
           is_published?: boolean
+          read_time_minutes?: number | null
           recorded_at: string
-          recording_url: string
           title: string
+          video_url?: string | null
         }
         Update: {
+          body_markdown?: string | null
+          content_type?: string
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
+          curator_note?: string | null
           description?: string | null
+          document_filename?: string | null
+          document_url?: string | null
+          domain?: string | null
           id?: string
           is_published?: boolean
+          read_time_minutes?: number | null
           recorded_at?: string
-          recording_url?: string
           title?: string
+          video_url?: string | null
         }
         Relationships: [
           {

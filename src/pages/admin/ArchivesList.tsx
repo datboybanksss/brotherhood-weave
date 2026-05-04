@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { ARCHIVE_DOMAINS, CONTENT_TYPE_LABEL, type ArchiveContentType, type ArchiveDomain } from "@/lib/archive-domains";
 
 export default function AdminArchivesList() {
   const navigate = useNavigate();
@@ -27,9 +28,19 @@ export default function AdminArchivesList() {
       </div>
       {archives?.map((a) => (
         <div key={a.id} className="flex items-center justify-between border border-border rounded-lg p-3">
-          <div>
+          <div className="space-y-1 min-w-0 flex-1">
             <p className="font-medium text-foreground text-sm">{a.title}</p>
             <p className="text-xs text-muted-foreground">{format(new Date(a.recorded_at), "MMM d, yyyy")}</p>
+            <div className="flex flex-wrap gap-1">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-foreground/5 text-foreground">
+                {CONTENT_TYPE_LABEL[(a as any).content_type as ArchiveContentType] ?? "Video"}
+              </span>
+              {(a as any).domain && (
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${ARCHIVE_DOMAINS[(a as any).domain as ArchiveDomain].badge}`}>
+                  {ARCHIVE_DOMAINS[(a as any).domain as ArchiveDomain].label}
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex gap-1">
             <Button variant="ghost" size="icon" onClick={() => navigate(`/admin/archives/${a.id}/edit`)}>
