@@ -14,13 +14,13 @@ export default function BottomTabNav() {
   const unread = useTotalUnreadCount();
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border pb-[env(safe-area-inset-bottom)]">
-      <div className="flex h-16 max-w-md mx-auto">
+      <div className="flex h-16 max-w-md mx-auto px-2">
         {tabs.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex flex-1 flex-col items-center justify-center gap-1 min-w-[48px] min-h-[48px] text-xs transition-colors ${
+              `flex flex-1 basis-0 flex-col items-center justify-center gap-1 min-h-[48px] text-xs transition-colors ${
                 isActive ? "text-primary" : "text-muted-foreground"
               }`
             }
