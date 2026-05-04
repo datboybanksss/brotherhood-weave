@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, PlayCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -10,12 +10,15 @@ import MembershipInfo from "@/components/account/MembershipInfo";
 import EditProfileForm from "@/components/account/EditProfileForm";
 import StravaConnection from "@/components/account/StravaConnection";
 import DangerZone from "@/components/account/DangerZone";
+import OnboardingModal from "@/components/onboarding/OnboardingModal";
+import { Button } from "@/components/ui/button";
 
 export default function Account() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const qc = useQueryClient();
   const { data: appUser } = useCurrentUser();
+  const [rewatchOpen, setRewatchOpen] = useState(false);
 
   useEffect(() => {
     const status = params.get("strava");
@@ -41,6 +44,7 @@ export default function Account() {
   if (!appUser) return null;
 
   const showTracker = appUser.payment_status !== "paid";
+  const isPaid = appUser.payment_status === "paid";
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -53,8 +57,18 @@ export default function Account() {
         <MembershipInfo user={appUser} />
         <EditProfileForm user={appUser} />
         <StravaConnection />
+        {isPaid && (
+          <Button variant="outline" className="w-full justify-start" onClick={() => setRewatchOpen(true)}>
+            <PlayCircle className="mr-2 h-4 w-4" /> Rewatch onboarding video
+          </Button>
+        )}
         <DangerZone />
       </div>
+      <OnboardingModal
+        open={rewatchOpen}
+        onClose={() => setRewatchOpen(false)}
+        showCompleteButton={false}
+      />
     </div>
   );
 }
