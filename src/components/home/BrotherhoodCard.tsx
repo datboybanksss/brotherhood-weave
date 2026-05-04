@@ -46,9 +46,9 @@ export default function BrotherhoodCard() {
         </div>
       </div>
       {recent && recent.length > 0 && (
-        <div className="flex -space-x-2">
+        <div className="flex -space-x-1">
           {recent.map((u) => (
-            <div key={u.id} className="ring-2 ring-card rounded-full">
+            <div key={u.id} className="rounded-full ring-[3px] ring-card">
               <Avatar userId={u.id} size="sm" />
             </div>
           ))}
