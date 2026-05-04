@@ -1,0 +1,2 @@
+DELETE FROM public.payments WHERE user_id IN ('ad3bcb2f-9f85-418c-91ff-12365b9246db', 'e1ea452d-f308-4c3d-8b78-9388dad2f3f5');
+DELETE FROM auth.users WHERE id IN ('ad3bcb2f-9f85-418c-91ff-12365b9246db', 'e1ea452d-f308-4c3d-8b78-9388dad2f3f5');
