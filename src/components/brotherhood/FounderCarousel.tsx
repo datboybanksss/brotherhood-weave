@@ -10,6 +10,7 @@ interface Founder {
   cardImageUrl?: string;
   avatarScale?: number;
   avatarObjectPosition?: string;
+  avatarTransformOrigin?: string;
 }
 
 export default function FounderCarousel({ founders }: { founders: Founder[] }) {
@@ -50,6 +51,7 @@ export default function FounderCarousel({ founders }: { founders: Founder[] }) {
                 innerGradient="linear-gradient(145deg,#1512D366 0%,#7B9FFF33 100%)"
                 avatarScale={founder.avatarScale}
                 avatarObjectPosition={founder.avatarObjectPosition}
+                avatarTransformOrigin={founder.avatarTransformOrigin}
               />
             </div>
           ))}

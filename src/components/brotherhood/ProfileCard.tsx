@@ -47,6 +47,7 @@ interface ProfileCardProps {
   onContactClick?: () => void;
   avatarScale?: number;
   avatarObjectPosition?: string;
+  avatarTransformOrigin?: string;
 }
 
 const ProfileCardComponent: React.FC<ProfileCardProps> = ({
@@ -71,6 +72,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
   onContactClick,
   avatarScale,
   avatarObjectPosition,
+  avatarTransformOrigin,
 }) => {
   const wrapRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -261,7 +263,8 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
     '--behind-glow-size': behindGlowSize ?? '50%',
     '--avatar-scale': avatarScale ?? 1,
     '--avatar-object-position': avatarObjectPosition ?? 'center 20%',
-  }), [iconUrl, grainUrl, innerGradient, behindGlowColor, behindGlowSize, avatarScale, avatarObjectPosition]);
+    '--avatar-transform-origin': avatarTransformOrigin ?? '50% 25%',
+  }), [iconUrl, grainUrl, innerGradient, behindGlowColor, behindGlowSize, avatarScale, avatarObjectPosition, avatarTransformOrigin]);
 
   const handleContactClick = useCallback(() => { onContactClick?.(); }, [onContactClick]);
 
