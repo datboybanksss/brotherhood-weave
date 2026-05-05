@@ -94,7 +94,7 @@ export function BentoTile({
       tabIndex={navigable ? 0 : undefined}
       aria-label={ariaLabel}
       className={cn(
-        "relative rounded-none border border-stroke-hairline bg-card p-5 animate-fade-in",
+        "relative rounded-2xl border border-stroke-hairline bg-card p-5 animate-fade-in",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-royal",
         navigable && "cursor-pointer hover:bg-muted/30 transition-colors duration-200",
         colBaseMap[colBase],
