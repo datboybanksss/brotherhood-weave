@@ -3,7 +3,6 @@ import { BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRecentArchives } from "@/hooks/useRecentArchives";
 import ArchivesHero from "./ArchivesHero";
-import ArchivesThumbnailRow from "./ArchivesThumbnailRow";
 import { stopTile } from "./BentoGrid";
 
 export default function ArchivesCard() {
@@ -31,10 +30,7 @@ export default function ArchivesCard() {
           <Button size="sm" variant="outline" onClick={goAll} className="mt-1">Browse Archives</Button>
         </div>
       ) : (
-        <div className="space-y-2">
-          <ArchivesHero archive={archives[0]} />
-          <ArchivesThumbnailRow archives={archives.slice(1, 4)} />
-        </div>
+        <ArchivesHero archive={archives[0]} />
       )}
     </div>
   );
