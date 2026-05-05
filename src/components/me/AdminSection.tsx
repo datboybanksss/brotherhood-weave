@@ -1,12 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { ClipboardCheck, Archive, BookOpen, Layers, Users2, Mail } from "lucide-react";
+import { ClipboardCheck, Archive, BookOpen, Layers, Users2, Mail, Calendar } from "lucide-react";
 
 const links = [
   { label: "Approvals", path: "/admin/approvals", icon: ClipboardCheck },
   { label: "Modules", path: "/admin/modules", icon: Layers },
   { label: "Archives", path: "/admin/archives", icon: Archive },
   { label: "Playbooks", path: "/admin/playbooks", icon: BookOpen },
+  { label: "Events", path: "/admin/events", icon: Calendar },
   { label: "Pairings", path: "/admin/pairings", icon: Users2 },
   { label: "Invitations", path: "/admin/invitations", icon: Mail },
 ];
