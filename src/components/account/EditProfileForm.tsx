@@ -4,13 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Camera, ImagePlus } from "lucide-react";
+import { Camera, ImagePlus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { updateProfile, uploadAvatar } from "@/api/account";
+import { deleteAvatar, updateProfile, uploadAvatar } from "@/api/account";
 import type { AppUser } from "@/hooks/useCurrentUser";
 
 const schema = z.object({
@@ -59,6 +59,20 @@ export default function EditProfileForm({ user }: { user: AppUser }) {
     onError: (err: Error) => { toast.error(err.message); setUploading(false); },
   });
 
+  const deleteAvatarMutation = useMutation({
+    mutationFn: async () => {
+      setUploading(true);
+      await deleteAvatar(user.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      queryClient.invalidateQueries({ queryKey: ["avatarUser", user.id] });
+      toast.success("Profile photo removed");
+      setUploading(false);
+    },
+    onError: (err: Error) => { toast.error(err.message); setUploading(false); },
+  });
+
   const mutation = useMutation({
     mutationFn: (data: FormData) => updateProfile(user.id, {
       full_name: data.full_name,
@@ -100,6 +114,20 @@ export default function EditProfileForm({ user }: { user: AppUser }) {
             Gallery
           </Button>
         </div>
+        {user.avatar_url && (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full min-h-[44px] gap-2 text-destructive hover:text-destructive"
+            disabled={uploading}
+            onClick={() => {
+              if (confirm("Remove your profile photo?")) deleteAvatarMutation.mutate();
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+            Remove photo
+          </Button>
+        )}
         {uploading && <p className="text-xs text-muted-foreground text-center">Uploading…</p>}
       </div>
 
