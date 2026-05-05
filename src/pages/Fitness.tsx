@@ -13,7 +13,6 @@ import BrotherhoodActivityFeed from "@/components/fitness/BrotherhoodActivityFee
 import CompactLeaderboard from "@/components/fitness/CompactLeaderboard";
 import UpcomingFitnessEvents from "@/components/fitness/UpcomingFitnessEvents";
 import LogActivityFAB from "@/components/fitness/LogActivityFAB";
-import PoweredByStrava from "@/components/fitness/PoweredByStrava";
 
 export default function Fitness() {
   const weekStart = currentSastMondayISO();
