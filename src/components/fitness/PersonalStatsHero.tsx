@@ -4,6 +4,9 @@ import Avatar from "@/components/Avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { currentMonthStartISO, getUserStreak } from "@/api/fitness";
+import { Button } from "@/components/ui/button";
+import LogActivityDialog from "./LogActivityDialog";
+import { Plus } from "lucide-react";
 
 export default function PersonalStatsHero() {
   const { user } = useAuth();
@@ -42,6 +45,11 @@ export default function PersonalStatsHero() {
       <div className="flex items-center gap-3">
         <Avatar userId={user.id} size="md" />
         <h2 className="text-base font-semibold">Your fitness in {monthName}</h2>
+        <LogActivityDialog trigger={
+          <Button size="sm" className="ml-auto h-8 gap-1 px-3" aria-label="Log workout">
+            <Plus className="h-4 w-4" /> Log workout
+          </Button>
+        } />
       </div>
       <div className="grid grid-cols-3 gap-2">
         <Stat label="Reps" value={data.reps} /><Stat label="Submissions" value={data.subs} /><Stat label="Streak (wks)" value={data.streak} />
