@@ -13,13 +13,18 @@ export default function AvatarStack({ userIds, max = 5, totalCount }: AvatarStac
 
   return (
     <div className="flex items-center">
-      <div className="flex -space-x-3">
-        {visible.map((id) => (
-          <div key={id} className="rounded-full ring-2 ring-card">
-            <Avatar userId={id} size="md" />
-          </div>
-        ))}
-      </div>
+      {visible.map((id, i) => (
+        <div
+          key={id}
+          className="rounded-full"
+          style={{
+            marginLeft: i === 0 ? 0 : -12,
+            boxShadow: i === 0 ? undefined : "0 0 0 3px hsl(var(--card))",
+          }}
+        >
+          <Avatar userId={id} size="md" />
+        </div>
+      ))}
       {remaining > 0 && (
         <div className="ml-2 px-2 py-1 rounded-full bg-muted text-xs font-medium text-muted-foreground">
           +{remaining} more
