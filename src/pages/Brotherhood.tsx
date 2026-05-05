@@ -51,7 +51,7 @@ export default function Brotherhood() {
     <div className="pb-10">
       {/* Sticky header with title + search */}
       <div className="sticky top-0 bg-background z-10 px-5 pt-5 pb-4 border-b border-stroke-hairline space-y-3">
-        <h1 className="font-serif italic text-display-h1 text-foreground">Brotherhood</h1>
+        <h1 className="font-serif italic text-display-h1 text-foreground text-center">The Brotherhood</h1>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-faint pointer-events-none" />
           <input
