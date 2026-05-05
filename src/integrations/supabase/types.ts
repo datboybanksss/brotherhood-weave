@@ -26,6 +26,7 @@ export type Database = {
           document_filename: string | null
           document_url: string | null
           domain: string | null
+          event_id: string | null
           id: string
           is_published: boolean
           read_time_minutes: number | null
@@ -44,6 +45,7 @@ export type Database = {
           document_filename?: string | null
           document_url?: string | null
           domain?: string | null
+          event_id?: string | null
           id?: string
           is_published?: boolean
           read_time_minutes?: number | null
@@ -62,6 +64,7 @@ export type Database = {
           document_filename?: string | null
           document_url?: string | null
           domain?: string | null
+          event_id?: string | null
           id?: string
           is_published?: boolean
           read_time_minutes?: number | null
@@ -82,6 +85,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "archives_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
             referencedColumns: ["id"]
           },
         ]
@@ -280,6 +290,115 @@ export type Database = {
           used_at?: string | null
         }
         Relationships: []
+      }
+      event_rsvps: {
+        Row: {
+          event_id: string
+          id: string
+          responded_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          responded_at?: string
+          status: string
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          responded_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_rsvps_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_rsvps_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          category: string
+          cover_url: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          ends_at: string | null
+          format: string
+          id: string
+          is_published: boolean
+          location: string | null
+          starts_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          cover_url?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          ends_at?: string | null
+          format: string
+          id?: string
+          is_published?: boolean
+          location?: string | null
+          starts_at: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          ends_at?: string | null
+          format?: string
+          id?: string
+          is_published?: boolean
+          location?: string | null
+          starts_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invitations: {
         Row: {
@@ -1366,6 +1485,15 @@ export type Database = {
       }
       evaluate_tier_upgrade: { Args: { target_user_id: string }; Returns: Json }
       get_collective_distance: { Args: never; Returns: number }
+      get_event_rsvp_summary: {
+        Args: { _event_id: string }
+        Returns: {
+          going_in_person: number
+          going_remote: number
+          not_going: number
+          total_rsvps: number
+        }[]
+      }
       get_monthly_leaderboard: {
         Args: { month_start: string }
         Returns: {
@@ -1379,13 +1507,49 @@ export type Database = {
           video_count: number
         }[]
       }
+      get_my_rsvp: { Args: { _event_id: string }; Returns: string }
       get_unread_count: {
         Args: { _channel_id: string; _user_id: string }
         Returns: number
       }
+      get_upcoming_events: {
+        Args: { category_filter?: string; limit_n?: number }
+        Returns: {
+          category: string
+          cover_url: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          ends_at: string | null
+          format: string
+          id: string
+          is_published: boolean
+          location: string | null
+          starts_at: string
+          title: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_user_monthly_stats: {
         Args: { _user_id: string; month_start: string }
         Returns: {
+          rank: number
+          submission_count: number
+          total_reps: number
+          video_count: number
+        }[]
+      }
+      get_user_monthly_stats_with_delta: {
+        Args: { _user_id: string; month_start: string }
+        Returns: {
+          prev_submission_count: number
+          prev_total_reps: number
           rank: number
           submission_count: number
           total_reps: number

@@ -9,6 +9,8 @@ import ForfeitRow from "./ForfeitRow";
 export default function ForfeitWatchlist() {
   const weekStart = currentSastMondayISO();
   const dow = currentSastDayOfWeek();
+  // Hide entirely Sun-Tue (0,1,2). Show Wed-Sat (3-6).
+  if (dow < 3) return null;
   const liveYet = dow === 0 || dow >= 3;
   const { data } = useForfeitList(weekStart, liveYet);
   const weekLabel = format(new Date(weekStart), "MMM d");

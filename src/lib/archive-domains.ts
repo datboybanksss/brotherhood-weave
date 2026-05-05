@@ -7,7 +7,7 @@ export type ArchiveDomain =
   | "career"
   | "spirituality";
 
-export type ArchiveContentType = "video" | "document" | "text";
+export type ArchiveContentType = "video" | "document" | "text" | "event_recap";
 
 interface DomainMeta {
   label: string;
@@ -67,6 +67,7 @@ export const CONTENT_TYPE_LABEL: Record<ArchiveContentType, string> = {
   video: "Video",
   document: "Document",
   text: "Article",
+  event_recap: "Event Recap",
 };
 
 export const FALLBACK_DOMAIN_META: DomainMeta = {

@@ -32,6 +32,9 @@ import MemberProfile from "@/pages/MemberProfile";
 import Fitness from "@/pages/Fitness";
 import Communities from "@/pages/Communities";
 import ChannelView from "@/pages/ChannelView";
+import EventDetail from "@/pages/EventDetail";
+import AdminEvents from "@/pages/admin/Events";
+import EventForm from "@/components/admin/EventForm";
 import AuthCallback from "@/pages/AuthCallback";
 import InviteRedemption from "@/pages/InviteRedemption";
 import NotFound from "@/pages/NotFound";
@@ -68,6 +71,9 @@ const App = () => (
               <Route path="/admin/modules/:moduleId/lessons/:lessonId/edit" element={<LessonForm />} />
               <Route path="/admin/pairings" element={<AdminPairings />} />
               <Route path="/admin/invitations" element={<InvitationsAdmin />} />
+              <Route path="/admin/events" element={<AdminEvents />} />
+              <Route path="/admin/events/new" element={<EventForm />} />
+              <Route path="/admin/events/:id/edit" element={<EventForm />} />
               <Route element={<PaidLayout />}>
                 <Route path="/home" element={<Home />} />
                 <Route path="/library" element={<Library />} />
@@ -81,6 +87,7 @@ const App = () => (
                 <Route path="/me" element={<Me />} />
                 <Route path="/member/:id" element={<MemberProfile />} />
                 <Route path="/fitness" element={<Fitness />} />
+                <Route path="/events/:id" element={<EventDetail />} />
               </Route>
             </Route>
             <Route path="*" element={<NotFound />} />

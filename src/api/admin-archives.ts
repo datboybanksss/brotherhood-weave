@@ -15,6 +15,7 @@ export interface ArchiveInput {
   document_url: string | null;
   document_filename: string | null;
   body_markdown: string | null;
+  event_id?: string | null;
 }
 
 export async function getAdminArchives() {

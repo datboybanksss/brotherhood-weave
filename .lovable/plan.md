@@ -1,84 +1,116 @@
-# Bento-grid Home page (mobile-first, every tile is tappable)
+# Sprint Plan: Events System + Fitness Page Redesign
 
-Adapting the bento-grid idea to Family Ties: mobile-first 2-col grid, varied tile sizes, our own content, and **every tile navigates to its dedicated tab/page** so the home becomes a true launch pad.
+Combined sprint to introduce the universal `events` primitive and rebuild `/fitness` around personal stats, brotherhood activity, and upcoming events. Built in one pass to avoid a second redesign.
 
-## Why not the raw component
-- Reference is desktop-first (3-col × 3-row); on mobile (390px) it collapses to a plain stack — same problem we have today.
-- Hard-coded "Integrations / Doc Hands" slots don't map to brotherhood content.
-- Pulls in `framer-motion` just for stagger — we already have `animate-fade-in` in our Tailwind config.
+## Confirmations
 
-## Layout
+1. **Calendar** — custom mobile grid (date-fns + divs, ~40 lines). No new library.
+2. **Activity feed** — composed client-side from existing `workouts` + `submissions` tables. NO new `activity_log` table. Streak/leaderboard milestones derived virtually from current data.
+3. **Archives extension** — adding `'event_recap'` to the `content_type` CHECK and a nullable `event_id` column is non-destructive. Existing rows keep their values; new constraint `content_type != 'event_recap' OR event_id IS NOT NULL` only affects new/changed rows.
+4. **FAB** — fixed bottom-right with `bottom: calc(4rem + env(safe-area-inset-bottom) + 1rem)`, z-index above BottomTabNav (z-50), respects iOS safe area.
+5. **RecentRunsFeed audit** — used only by `Fitness.tsx` (the soon-to-be-replaced runs card). NOT used by `CollectiveChallengeCard` (that one renders `CircularProgress` only). Safe to repurpose into the brotherhood feed.
 
-Mobile-first 2-col, expanding to 4-col on `md+`. Tile importance drives `col-span` / `row-span`.
+---
 
-```text
-Mobile (390px, 2 cols)            md+ (4 cols)
-┌─────────────────────────┐       ┌────┬────┬────┬────┐
-│  Welcome (full)         │       │ Welcome (span 4)  │
-├─────────────────────────┤       ├────┴────┼────┴────┤
-│  Peer of the week       │       │  Peer   │ 100km   │
-│  (full, hero) → /me     │       │ (span 2)│ Challenge│
-├───────────┬─────────────┤       │         │(span 2, │
-│ Brother-  │  Tier       │       │         │ row 2)  │
-│ hood →    │  Progress   │       ├────┬────┤         │
-│/brotherhd │  → /me      │       │ B'h│Tier│         │
-├───────────┴─────────────┤       ├────┴────┼────┬────┤
-│  100km Challenge        │       │ Depts   │Fit │Runs│
-│  (full) → /fitness      │       │(span 2) │    │    │
-├───────────┬─────────────┤       └─────────┴────┴────┘
-│ Depts →   │  Fitness →  │
-│/communit. │  /fitness   │
-├───────────┴─────────────┤
-│ Latest runs → /fitness  │
-└─────────────────────────┘
-```
+## Task 1 — Data model (single migration)
 
-## Tile → destination map (the "every tile is a tab" rule)
+**New table `events`** — id, title, description (markdown ≤5000), category (fitness|brotherhood_meeting|social|founder_call|workshop|other), format (in_person|remote|hybrid), location, starts_at, ends_at (≥starts_at), cover_url, is_published, created_by, created_at, updated_at. Indexes on starts_at, (category, starts_at), (is_published, starts_at). Trigger to bump updated_at.
 
-| Tile | Destination | Existing route? |
-|---|---|---|
-| Welcome strip | `/account` (avatar tap) | yes |
-| Peer of the week | `/member/:partnerId` (single) or `/me` (waiting) | yes |
-| 100km Challenge | `/fitness` (new "Challenge" deep section, scroll anchor `#challenge`) | yes |
-| Brotherhood count | `/brotherhood` | yes |
-| Tier progress | `/me` (scrolls to checklist, anchor `#tier`) | yes |
-| Departments | `/communities` (or first dept channel) | yes |
-| Fitness hub | `/fitness` | yes |
-| Latest runs | `/fitness#runs` | yes |
+RLS: SELECT for paid members where published OR admin; INSERT/UPDATE/DELETE admin-only.
 
-Tiles that today contain inner buttons (Connect Strava, Log Run, View profile) keep those buttons functional but the **rest of the tile area** becomes a tappable surface that routes to the destination above. Inner buttons use `e.stopPropagation()` so they don't double-fire.
+**New table `event_rsvps`** — id, event_id (cascade), user_id (cascade), status (going_in_person|going_remote|not_going), responded_at. UNIQUE (event_id, user_id). Indexes on event_id and (user_id, event_id).
 
-## Visual treatment
-- Uniform `rounded-2xl border border-border/60 bg-card shadow-sm`, `p-4` interior.
-- Grid: `grid grid-cols-2 md:grid-cols-4 gap-3 auto-rows-[minmax(120px,auto)]`.
-- Hero tiles get a faint primary gradient `bg-gradient-to-br from-card to-primary/5`.
-- Compact stat tiles: big number/icon top, label, `ChevronRight` bottom-right hinting "tap to open".
-- `animate-fade-in` from existing config — no `framer-motion` install.
-- Each tappable tile: `role="link"`, `tabIndex={0}`, `cursor-pointer`, `hover:bg-muted/30 transition-colors`, `focus-visible:ring-2 ring-primary`.
+RLS: SELECT all paid members; INSERT/UPDATE only own; DELETE own or admin. BEFORE INSERT trigger forces `user_id := auth.uid()`.
 
-## Files to change
+**Alter `archives`** — add `event_id uuid` nullable references events(id) ON DELETE SET NULL. Drop and recreate content_type CHECK to include `'event_recap'`. Add CHECK `content_type != 'event_recap' OR event_id IS NOT NULL`.
 
-1. **New `src/components/home/BentoGrid.tsx`** — `<BentoGrid>` wrapper + `<BentoTile span={{base, md}} variant="default|hero|stat" to?: string onClick?: () => void>` that applies the shell, fade-in, and (when `to` is set) wraps in a navigable surface using `useNavigate`. Renders `ChevronRight` indicator for stat variant.
-2. **`src/pages/Home.tsx`** — replace `space-y-5` stack with `<BentoGrid>` containing each tile with its `to` destination from the table above. Pull `RecentRunsFeed` out of `CollectiveChallengeCard` into its own `<BentoTile to="/fitness#runs">`.
-3. **`src/components/home/CollectiveChallengeCard.tsx`** — remove inner "Latest from the brotherhood" block (moves out). Strip outer card chrome (BentoTile provides it). Make body tappable → `/fitness#challenge`; "Connect/Sync Strava" and "Log a run manually" buttons stay, with `stopPropagation`.
-4. **`src/components/home/BrotherhoodCard.tsx`** — restyle as compact stat tile (big count, "brothers", small 3-avatar constellation), strip own card chrome, navigation handled by BentoTile (`to="/brotherhood"`).
-5. **`src/components/home/TierProgressMini.tsx`** — restyle as compact stat tile, strip own button (BentoTile is the button) → `/me#tier`.
-6. **`src/components/home/FitnessHubCard.tsx`** — convert to compact vertical stat tile, strip own card chrome → `/fitness`.
-7. **`src/components/home/DepartmentsCard.tsx`** — strip own card chrome. Whole tile navigates to `/communities`; individual department rows keep their own click handlers (with `stopPropagation`) so tapping a specific dept still jumps straight to that channel.
-8. **`src/components/home/PeerPartnerCardSingle.tsx` / `Trio.tsx` / `Waiting.tsx`** — strip outer `rounded-xl border bg-card p-5`. Single → BentoTile routes to `/member/:partnerId`; Trio → keep per-row buttons with `stopPropagation`, tile itself routes to `/me`; Waiting → tile routes to `/me`.
-9. **New `src/components/home/RecentRunsTile.tsx`** — wraps `RecentRunsFeed` with a "Latest runs" heading and "View all" hint; whole tile → `/fitness#runs`.
-10. **`src/pages/Me.tsx`** — add `id="tier"` anchor on the `TierProgressChecklist` wrapper and a `useEffect` hash-scroll handler (mirroring the `#bio` pattern already in `Account.tsx`).
-11. **`src/pages/Fitness.tsx`** — add `id="challenge"` and `id="runs"` anchors on the relevant sections plus a hash-scroll `useEffect`.
+**Storage bucket `event-covers`** — public, 5MB, image mimes. INSERT/DELETE admin-only via storage.objects policy.
 
-## What we're NOT doing
-- Not installing `framer-motion`.
-- Not copying the demo's Doc Hands / Integrations / Feature Tags slots.
-- Not changing data hooks, RLS, or the bottom tab nav.
-- Not changing `/me` layout beyond adding the `#tier` anchor.
+**Helper SECURITY DEFINER functions**:
+- `get_upcoming_events(category_filter text, limit_n int)` — published + future, optional category filter.
+- `get_event_rsvp_summary(event_id uuid)` — counts per status.
+- `get_my_rsvp(event_id uuid)` — caller's status or null.
+- `get_user_monthly_stats_with_delta(_user_id, month_start)` — extends existing stats with month-over-month percentage.
 
-## Mobile QA (390×822)
-- `CircularProgress` (180px) fits inside full-width hero tile (~358px).
-- Stat tiles ~170×170, paired cleanly side-by-side.
-- Tap targets ≥ 44px; nested buttons (Strava, Log Run, dept rows) don't bubble to tile navigation.
-- Empty states (no peer, no runs, no depts) still look intentional inside their tile.
-- Keyboard: each tile is focusable with visible ring; Enter/Space navigates.
+---
+
+## Task 2 — Admin event management
+
+Files:
+- `src/api/admin-events.ts` — list (upcoming/past), create, update, delete.
+- `src/pages/admin/Events.tsx` — header + Tabs (Upcoming | Past) + new event button.
+- `src/components/admin/EventsList.tsx`, `EventRow.tsx` — row with category/format badges, relative time, RSVP summary, Edit/Delete/View/Add Recap actions.
+- `src/components/admin/EventForm.tsx` — RHF + zod, cover upload to event-covers, location placeholder shifts by format.
+- Modify `src/pages/admin/ArchiveForm.tsx` — accept `?eventId=` and `?mode=event_recap` search params; lock content_type, prefill title from event, set domain by category.
+- Modify `src/components/me/AdminLink.tsx` (or AdminSection) — add "Admin: Events" link.
+- Register routes in `src/App.tsx`: `/admin/events`, `/admin/events/new`, `/admin/events/:id/edit`.
+
+"Add Recap" links to `/admin/archives/new?mode=event_recap&eventId=:id`.
+
+---
+
+## Task 3 — Event detail page `/events/:id`
+
+Files:
+- `src/pages/EventDetail.tsx` — composes hero, header, RSVP, body, attendees, post-event sections.
+- `src/components/events/EventHero.tsx` — 16:9 cover or category-color placeholder + badges.
+- `src/components/events/EventRSVPButtons.tsx` — renders 2 or 3 buttons by format; tap selected again clears.
+- `src/components/events/EventAttendeesSection.tsx` — uses existing `AvatarStack`, links to `/member/:id`.
+- `src/components/events/EventActivitySection.tsx` — fitness category & past: queries `workouts` + `submissions` on event date, max 20 + View all.
+- `src/components/events/EventRecapSection.tsx` — looks up archive by event_id; renders inline + link to `/library/archive/:id`.
+- `src/api/events.ts` — getEventById, getMyRSVP, setRSVP, clearRSVP, getEventActivity, getEventRecap, getEventRsvpSummary, getEventAttendees.
+- `src/hooks/useEvent.ts`, `useMyRSVP.ts`, `useEventAttendees.ts`.
+- Add `<Route path="/events/:id" element={<EventDetail />} />` inside `<PaidLayout>` in `src/App.tsx`.
+
+---
+
+## Task 4 — Communities Events layer
+
+Files:
+- Modify `src/pages/Communities.tsx` — wrap in shadcn Tabs (`?layer=channels|events`), default channels.
+- `src/components/communities/EventsLayer.tsx` — Upcoming + Calendar sections.
+- `src/components/communities/UpcomingEventsList.tsx`, `UpcomingEventRow.tsx` — top 5 + expandable.
+- `src/components/communities/EventsCalendar.tsx` — custom mobile month grid using date-fns; prev/next/today; dot per event color-coded by category.
+- `src/components/communities/CalendarDay.tsx` — single cell.
+- `src/components/communities/DayEventsSheet.tsx` — shadcn Sheet listing events for the tapped day.
+- `src/api/community-events.ts` — getUpcomingEvents, getEventsForMonth.
+- `src/hooks/useUpcomingEvents.ts`, `useEventsForMonth.ts`.
+
+---
+
+## Task 5 — Fitness page full rewrite
+
+Files:
+- Rewrite `src/pages/Fitness.tsx` — vertical stack: PersonalStatsHero → BrotherhoodActivityFeed → CompactLeaderboard → UpcomingFitnessEvents → ForfeitWatchlist (Wed–Sat only) → PoweredByStrava. FAB rendered as sibling.
+- `src/components/fitness/PersonalStatsHero.tsx` — avatar, three stat tiles (reps, submissions, weekly streak), MoM delta line.
+- `src/components/fitness/BrotherhoodActivityFeed.tsx` — merged feed row component.
+- `src/components/fitness/ActivityFeedRow.tsx` — single row UI.
+- `src/components/fitness/CompactLeaderboard.tsx` — top 5 + sticky-highlight current user if outside.
+- `src/components/fitness/UpcomingFitnessEvents.tsx` — next 3 fitness events with RSVP indicator.
+- `src/components/fitness/LogActivityFAB.tsx` — fixed bottom-right, above BottomTabNav, safe-area aware, opens existing `LogActivityDialog`.
+- `src/components/fitness/PoweredByStrava.tsx` — official logo + link to strava.com (target=_blank, rel=noopener).
+- `src/hooks/useBrotherhoodFeed.ts` — fetch last 50 workouts + 50 submissions, merge, sort, slice 30, with "load more".
+- `public/strava-logo.svg` — official Strava orange "Powered by Strava" logomark.
+- Modify `src/components/fitness/ForfeitWatchlist.tsx` to early-return null Sun–Tue SAST (gating moved from Fitness page so any future caller is also gated).
+
+Components removed from Fitness page: existing "Log activity" hero card, full leaderboard card, "Latest runs" card. Kept components: `LogActivityDialog`, `MyRecentSubmissions`, `MonthlyLeaderboard` (data hook reused), `ForfeitWatchlist`.
+
+---
+
+## Task 6 — Smoke tests
+
+Verify all 13 flows from the prompt (create event, RSVP remote/hybrid, Communities Events layer + calendar, Fitness upcoming events, personal stats, brotherhood feed, sticky FAB, forfeit gating, Powered by Strava, recap creation, past activity, RLS attacks).
+
+---
+
+## Constraints honored
+
+- All new components ≤50 lines.
+- No try/catch.
+- No edits to `src/components/ui/`.
+- RSVP user_id forced server-side via trigger.
+- Forfeit watchlist hidden Sun–Tue (SAST).
+- Custom calendar (no library).
+- Activity feed merges existing tables only.
+- FAB respects `env(safe-area-inset-bottom)` and sits above BottomTabNav (z-50+).
+- Events display in user local TZ; SAST only used for forfeit gating.
