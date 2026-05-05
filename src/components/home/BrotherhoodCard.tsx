@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import AvatarStack from "@/components/home/AvatarStack";
+import brotherhoodIcon from "@/assets/brotherhood-icon.png";
 
 export default function BrotherhoodCard() {
   const { data: count } = useQuery({
@@ -43,7 +43,7 @@ export default function BrotherhoodCard() {
   return (
     <div className="flex h-full flex-col gap-3">
       <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-        <Users className="h-3.5 w-3.5" /> Brotherhood
+        <img src={brotherhoodIcon} alt="" className="h-4 w-4 sm:h-5 sm:w-5 object-contain" /> Brotherhood
       </div>
       {recent && recent.length > 0 && (
         <AvatarStack userIds={recent} max={5} totalCount={total} />
