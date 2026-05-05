@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Users } from "lucide-react";
-import Avatar from "@/components/Avatar";
 import { supabase } from "@/lib/supabase";
+import AvatarStack from "@/components/home/AvatarStack";
 
 export default function BrotherhoodCard() {
   const { data: count } = useQuery({
@@ -19,52 +19,38 @@ export default function BrotherhoodCard() {
   });
 
   const { data: recent } = useQuery({
-    queryKey: ["brotherhoodRecentAvatars"],
+    queryKey: ["brotherhoodStackAvatars"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("users")
-        .select("id")
+        .select("id, is_admin, created_at")
         .eq("payment_status", "paid")
         .is("rejected_at", null)
         .order("created_at", { ascending: false })
-        .limit(6);
+        .limit(50);
       if (error) throw error;
-      return data ?? [];
+      const rows = (data ?? []) as { id: string; is_admin: boolean | null; created_at: string }[];
+      const founders = rows
+        .filter((r) => r.is_admin)
+        .sort((a, b) => a.created_at.localeCompare(b.created_at));
+      const rest = rows.filter((r) => !r.is_admin);
+      return [...founders, ...rest].map((r) => r.id);
     },
     staleTime: 60_000,
   });
 
+  const total = count ?? 0;
   return (
-    <div className="flex h-full flex-col justify-between">
+    <div className="flex h-full flex-col gap-3">
       <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
         <Users className="h-3.5 w-3.5" /> Brotherhood
       </div>
-      <div className="flex items-end justify-between gap-3 mt-2">
-        <div>
-          <div className="text-3xl md:text-4xl font-bold leading-none text-foreground">{count ?? 0}</div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {count === 1 ? "brother" : "brothers"}
-          </div>
-        </div>
-        {recent && recent.length > 0 && (
-          <div className="hidden md:flex -space-x-1">
-            {recent.map((u) => (
-              <div key={u.id} className="rounded-full ring-[3px] ring-card">
-                <Avatar userId={u.id} size="sm" />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
       {recent && recent.length > 0 && (
-        <div className="flex -space-x-1 md:hidden mt-3">
-          {recent.slice(0, 3).map((u) => (
-            <div key={u.id} className="rounded-full ring-[3px] ring-card">
-              <Avatar userId={u.id} size="sm" />
-            </div>
-          ))}
-        </div>
+        <AvatarStack userIds={recent} max={5} totalCount={total} />
       )}
+      <div className="text-xs text-muted-foreground mt-auto">
+        {total} {total === 1 ? "brother" : "brothers"}
+      </div>
     </div>
   );
 }
