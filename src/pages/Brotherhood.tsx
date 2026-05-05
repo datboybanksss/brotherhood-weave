@@ -67,7 +67,7 @@ export default function Brotherhood() {
       {/* Founders carousel */}
       {founders.length > 0 && (
         <section className="mt-6">
-          <p className="text-label uppercase text-text-muted px-5 mb-4">The Club Founders</p>
+          <p className="text-label uppercase text-text-muted px-5 mb-4 text-center">The Club Founders</p>
           <FounderCarousel founders={founders} />
         </section>
       )}
