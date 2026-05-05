@@ -42,7 +42,7 @@ export default function CollectiveChallengeCard() {
 
   return (
     <div className="space-y-4">
-      <div className="text-sm font-semibold text-foreground">100km Challenge — by June 16</div>
+      <div className="text-sm font-semibold text-foreground">100km Challenge by June 16</div>
       <div className="flex flex-col items-center">
         <CircularProgress value={totalKm} max={GOAL_KM} />
         {daysRemaining > 0 && (
