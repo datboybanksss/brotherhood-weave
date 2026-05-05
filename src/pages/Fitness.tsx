@@ -57,7 +57,6 @@ export default function Fitness() {
             <RecentRunsFeed />
           </CardContent>
         </Card>
-        <PoweredByStrava />
       </div>
       <LogActivityFAB />
     </>
