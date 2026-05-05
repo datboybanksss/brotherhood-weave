@@ -27,7 +27,7 @@ export default function EventForm() {
   }, enabled: isEdit });
   const [f, setF] = useState<F>(blank); const [hyd, setHyd] = useState(false); const [up, setUp] = useState(false);
   if (existing && !hyd) {
-    setF({ title: existing.title, description: existing.description ?? "", category: existing.category, format: existing.format, location: existing.location ?? "",
+    setF({ title: existing.title, description: existing.description ?? "", category: existing.category as EventCategory, format: existing.format as EventFormat, location: existing.location ?? "",
       starts_at: existing.starts_at.slice(0, 16), ends_at: existing.ends_at?.slice(0, 16) ?? "", cover_url: existing.cover_url, is_published: existing.is_published });
     setHyd(true);
   }
