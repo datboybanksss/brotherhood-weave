@@ -11,7 +11,7 @@ export default function AvatarStack({ userIds, max = 5, totalCount }: AvatarStac
   const total = totalCount ?? userIds.length;
   const remaining = total - visible.length;
   // Avatar md: 40 + ring(2)*2 + gap(4) = 48px container, overlap 12px
-  const overlap = 12;
+  const overlap = 18;
   const tile = 48;
   // Cut a circle out of the right side of each non-last avatar so the next
   // avatar's ring doesn't overlay the previous one's ring.
