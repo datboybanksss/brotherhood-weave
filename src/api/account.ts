@@ -39,3 +39,17 @@ export async function deleteAccount() {
   if (error) throw error;
   return data;
 }
+
+export async function deleteAvatar(userId: string) {
+  // Best-effort remove any stored avatar files for the user
+  const { data: list } = await supabase.storage.from("avatars").list(userId);
+  if (list && list.length > 0) {
+    const paths = list.map((f) => `${userId}/${f.name}`);
+    await supabase.storage.from("avatars").remove(paths);
+  }
+  const { error } = await (supabase as any)
+    .from("users")
+    .update({ avatar_url: null })
+    .eq("id", userId);
+  if (error) throw error;
+}
