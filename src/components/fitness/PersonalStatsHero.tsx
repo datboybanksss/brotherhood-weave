@@ -41,7 +41,7 @@ export default function PersonalStatsHero() {
     <div className="space-y-3">
       <div className="flex items-center gap-3">
         <Avatar userId={user.id} size="md" />
-        <h2 className="text-base font-semibold">Your fitness — {monthName}</h2>
+        <h2 className="text-base font-semibold">Your fitness in {monthName}</h2>
       </div>
       <div className="grid grid-cols-3 gap-2">
         <Stat label="Reps" value={data.reps} /><Stat label="Submissions" value={data.subs} /><Stat label="Streak (wks)" value={data.streak} />
