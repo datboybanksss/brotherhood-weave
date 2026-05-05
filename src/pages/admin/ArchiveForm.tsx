@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { createArchive, updateArchive, type ArchiveInput } from "@/api/admin-archives";
@@ -17,6 +17,7 @@ import VideoUrlField from "@/components/admin/VideoUrlField";
 import DocumentUploadField from "@/components/admin/DocumentUploadField";
 import CoverUploadField from "@/components/admin/CoverUploadField";
 import { ARCHIVE_DOMAIN_KEYS, ARCHIVE_DOMAINS, type ArchiveContentType, type ArchiveDomain } from "@/lib/archive-domains";
+import { CATEGORY_TO_DOMAIN, type EventCategory } from "@/lib/event-meta";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -34,13 +35,14 @@ type FormState = {
   document_url: string | null;
   document_filename: string | null;
   body_markdown: string;
+  event_id: string | null;
 };
 
 const blank: FormState = {
   title: "", description: "", content_type: "video", domain: "none", curator_note: "",
   read_time_minutes: "", recorded_at: new Date().toISOString().slice(0, 10),
   is_published: true, cover_url: null, video_url: "", document_url: null,
-  document_filename: null, body_markdown: "",
+  document_filename: null, body_markdown: "", event_id: null,
 };
 
 export default function ArchiveForm() {
@@ -49,6 +51,9 @@ export default function ArchiveForm() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const isEdit = !!id;
+  const [searchParams] = useSearchParams();
+  const recapMode = searchParams.get("mode") === "event_recap";
+  const recapEventId = searchParams.get("eventId");
 
   const { data: existing } = useQuery({
     queryKey: ["archive", id],
@@ -58,6 +63,16 @@ export default function ArchiveForm() {
       return data as any;
     },
     enabled: isEdit,
+  });
+
+  const { data: recapEvent } = useQuery({
+    queryKey: ["recapEvent", recapEventId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("events").select("id, title, category").eq("id", recapEventId!).single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !isEdit && recapMode && !!recapEventId,
   });
 
   const [form, setForm] = useState<FormState>(blank);
@@ -79,7 +94,15 @@ export default function ArchiveForm() {
       document_url: existing.document_url ?? null,
       document_filename: existing.document_filename ?? null,
       body_markdown: existing.body_markdown ?? "",
+      event_id: existing.event_id ?? null,
     });
+    setHydrated(true);
+  }
+
+  if (!isEdit && recapMode && recapEvent && !hydrated) {
+    const dom = CATEGORY_TO_DOMAIN[recapEvent.category as EventCategory];
+    setForm((p) => ({ ...p, content_type: "event_recap", title: recapEvent.title, event_id: recapEvent.id,
+      domain: (dom as ArchiveDomain) ?? "none" }));
     setHydrated(true);
   }
 
@@ -91,7 +114,8 @@ export default function ArchiveForm() {
     if (!form.title.trim()) { toast.error("Title required"); return null; }
     if (form.content_type === "video" && !form.video_url) { toast.error("Video URL required"); return null; }
     if (form.content_type === "document" && !form.document_url) { toast.error("Upload a document"); return null; }
-    if (form.content_type === "text" && !form.body_markdown.trim()) { toast.error("Article body required"); return null; }
+    if ((form.content_type === "text" || form.content_type === "event_recap") && !form.body_markdown.trim()) { toast.error("Body required"); return null; }
+    if (form.content_type === "event_recap" && !form.event_id) { toast.error("Event link required"); return null; }
     if (form.curator_note.length > 400) { toast.error("Curator note too long"); return null; }
     return {
       title: form.title.trim(),
@@ -106,7 +130,8 @@ export default function ArchiveForm() {
       video_url: form.content_type === "video" ? form.video_url.trim() : null,
       document_url: form.content_type === "document" ? form.document_url : null,
       document_filename: form.content_type === "document" ? form.document_filename : null,
-      body_markdown: form.content_type === "text" ? form.body_markdown : null,
+      body_markdown: (form.content_type === "text" || form.content_type === "event_recap") ? form.body_markdown : null,
+      event_id: form.content_type === "event_recap" ? form.event_id : null,
     };
   }
 
