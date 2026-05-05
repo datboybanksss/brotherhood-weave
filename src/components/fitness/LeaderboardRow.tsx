@@ -1,11 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { Crown } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import type { LeaderboardRow as Row } from "@/api/fitness";
 import { cn } from "@/lib/utils";
-
-const crownColor = (rank: number) =>
-  rank === 1 ? "text-yellow-500" : rank === 2 ? "text-gray-400" : rank === 3 ? "text-amber-700" : "";
+import RankMedal, { medalForRank } from "./RankMedal";
 
 export default function LeaderboardRow({ row, rank, isMe }: { row: Row; rank: number; isMe: boolean }) {
   const nav = useNavigate();
@@ -18,7 +15,7 @@ export default function LeaderboardRow({ row, rank, isMe }: { row: Row; rank: nu
       )}
     >
       <span className="w-6 text-sm font-semibold text-muted-foreground text-center inline-flex items-center justify-center">
-        {rank <= 3 ? <Crown className={cn("h-4 w-4", crownColor(rank))} /> : rank}
+        {medalForRank(rank) ? <RankMedal rank={rank} className="h-5 w-5" /> : rank}
       </span>
       <Avatar userId={row.user_id} size="sm" />
       <div className="flex-1 min-w-0">
