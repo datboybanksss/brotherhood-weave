@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Users, Star, ChevronRight } from "lucide-react";
+import { Star, ChevronRight } from "lucide-react";
 import { useMyDepartmentChannels } from "@/hooks/useMyDepartmentChannels";
 import { stopTile } from "./BentoGrid";
+import departmentsIcon from "@/assets/departments-icon.png";
 
 export default function DepartmentsCard() {
   const { data, isLoading } = useMyDepartmentChannels();
@@ -12,7 +13,7 @@ export default function DepartmentsCard() {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-        <Users className="h-3.5 w-3.5" /> Your Departments
+        <img src={departmentsIcon} alt="" className="h-5 w-5 sm:h-6 sm:w-6 object-contain" /> Your Departments
       </div>
       {depts.length === 0 ? (
         <p className="text-sm text-muted-foreground">
