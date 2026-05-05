@@ -19,7 +19,12 @@ export default function PersonalStatsHero() {
         getUserStreak(user!.id),
       ]);
       if (r.error) throw r.error;
-      const row = (r.data ?? [])[0] ?? {};
+      const row = ((r.data ?? [])[0] ?? {}) as {
+        total_reps?: number | string;
+        submission_count?: number | string;
+        prev_total_reps?: number | string;
+        prev_submission_count?: number | string;
+      };
       return {
         reps: Number(row.total_reps ?? 0), subs: Number(row.submission_count ?? 0),
         prevReps: Number(row.prev_total_reps ?? 0), prevSubs: Number(row.prev_submission_count ?? 0), streak,
