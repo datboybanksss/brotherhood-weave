@@ -12,7 +12,7 @@ export function BentoGrid({ children, className }: BentoGridProps) {
   return (
     <section
       className={cn(
-        "grid grid-cols-2 md:grid-cols-4 gap-3 auto-rows-[minmax(120px,auto)]",
+        "grid grid-cols-2 md:grid-cols-4 gap-6 auto-rows-[minmax(120px,auto)]",
         className,
       )}
     >
@@ -94,10 +94,9 @@ export function BentoTile({
       tabIndex={navigable ? 0 : undefined}
       aria-label={ariaLabel}
       className={cn(
-        "relative rounded-2xl border border-border/60 bg-card shadow-sm p-4 animate-fade-in",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-        navigable && "cursor-pointer hover:bg-muted/30 transition-colors",
-        variant === "hero" && "bg-gradient-to-br from-card to-primary/5",
+        "relative rounded-none border border-stroke-hairline bg-card p-5 animate-fade-in",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-royal",
+        navigable && "cursor-pointer hover:bg-muted/30 transition-colors duration-200",
         colBaseMap[colBase],
         colMdMap[colMd ?? colBase],
         rowMdMap[rowMd],

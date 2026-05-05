@@ -7,10 +7,10 @@ interface Props { partner: PartnerInfo; weekEnd: Date }
 export default function PeerPartnerCardSingle({ partner, weekEnd }: Props) {
   return (
     <div className="space-y-4">
-      <h2 className="text-sm font-semibold text-foreground">Your peer this week</h2>
+      <h2 className="text-label font-medium uppercase text-text-muted">Your peer this week</h2>
       <div className="flex flex-col items-center text-center space-y-2">
         <Avatar userId={partner.id} size="lg" />
-        <p className="text-lg font-bold text-foreground">{partner.full_name}</p>
+        <p className="font-serif italic text-display-h1 text-foreground">{partner.full_name}</p>
         {partner.primary_department && (
           <p className="text-xs text-muted-foreground">{partner.primary_department}</p>
         )}

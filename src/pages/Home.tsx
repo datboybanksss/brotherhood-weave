@@ -45,20 +45,10 @@ export default function Home() {
   const showTier = appUser.tiers?.name === "Foundation";
 
   return (
-    <div className="p-4 max-w-md md:max-w-4xl mx-auto">
+    <div className="px-5 py-5 max-w-md md:max-w-4xl mx-auto">
       <BentoGrid>
         <BentoTile colBase={2} colMd={4} to="/account" ariaLabel="Account settings">
           <WelcomeHeader user={appUser} />
-        </BentoTile>
-
-        <BentoTile
-          colBase={2}
-          colMd={2}
-          variant="hero"
-          to={peerDestination}
-          ariaLabel="Open peer profile"
-        >
-          <PeerPartnerCard />
         </BentoTile>
 
         <BentoTile
@@ -68,8 +58,19 @@ export default function Home() {
           variant="hero"
           to="/fitness#challenge"
           ariaLabel="Open 100km challenge"
+          className="bg-gradient-to-b from-brand-royal-tint to-white"
         >
           <CollectiveChallengeCard />
+        </BentoTile>
+
+        <BentoTile
+          colBase={1}
+          colMd={2}
+          variant="hero"
+          to={peerDestination}
+          ariaLabel="Open peer profile"
+        >
+          <PeerPartnerCard />
         </BentoTile>
 
         <BentoTile
@@ -78,6 +79,7 @@ export default function Home() {
           variant="stat"
           to="/brotherhood"
           ariaLabel="Open brotherhood"
+          className="bg-gradient-to-b from-brand-royal-tint to-white"
         >
           <BrotherhoodCard />
         </BentoTile>
@@ -88,9 +90,18 @@ export default function Home() {
           variant="stat"
           to="/fitness"
           ariaLabel="Open fitness"
-          className="md:order-2"
+          className="bg-gradient-to-r from-brand-royal-tint to-white"
         >
           <FitnessHubCard />
+        </BentoTile>
+
+        <BentoTile
+          colBase={1}
+          colMd={2}
+          to="/communities"
+          ariaLabel="Open communities"
+        >
+          <DepartmentsCard />
         </BentoTile>
 
         {showTier && (
@@ -107,19 +118,8 @@ export default function Home() {
 
         <BentoTile
           colBase={2}
-          colMd={2}
-          to="/communities"
-          ariaLabel="Open communities"
-          className="md:order-1"
-        >
-          <DepartmentsCard />
-        </BentoTile>
-
-        <BentoTile
-          colBase={2}
           colMd={4}
           ariaLabel="Archives"
-          className="md:order-3"
         >
           <ArchivesCard />
         </BentoTile>

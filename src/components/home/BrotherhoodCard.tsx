@@ -42,13 +42,13 @@ export default function BrotherhoodCard() {
   const total = count ?? 0;
   return (
     <div className="flex h-full flex-col gap-3">
-      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-label font-medium uppercase text-text-muted">
         <img src={brotherhoodIcon} alt="" className="h-4 w-4 sm:h-5 sm:w-5 object-contain" /> Brotherhood
       </div>
       {recent && recent.length > 0 && (
         <AvatarStack userIds={recent} max={5} totalCount={total} />
       )}
-      <div className="text-xs text-muted-foreground mt-auto">
+      <div className="text-body-md text-text-muted mt-auto">
         {total} {total === 1 ? "brother" : "brothers"}
       </div>
     </div>
