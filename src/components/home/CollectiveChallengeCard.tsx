@@ -54,11 +54,11 @@ export default function CollectiveChallengeCard() {
       </div>
       <div className="space-y-2" onClick={stopTile}>
         {connection ? (
-          <Button className="w-full" onClick={onSync} disabled={busy}>
+          <Button className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white" onClick={onSync} disabled={busy}>
             <RefreshCw className={`w-4 h-4 mr-2 ${busy ? "animate-spin" : ""}`} /> Sync from Strava
           </Button>
         ) : (
-          <Button className="w-full" onClick={onConnect}>
+          <Button className="w-full bg-[#FC4C02] hover:bg-[#E34402] text-white" onClick={onConnect}>
             <Activity className="w-4 h-4 mr-2" /> Connect Strava
           </Button>
         )}
