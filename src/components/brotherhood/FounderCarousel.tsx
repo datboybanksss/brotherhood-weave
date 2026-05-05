@@ -47,7 +47,7 @@ export default function FounderCarousel({ founders }: { founders: Founder[] }) {
                 onContactClick={() => navigate(`/member/${founder.id}`)}
                 enableTilt
                 enableMobileTilt={false}
-                behindGlowColor="rgba(21, 18, 211, 0.35)"
+                behindGlowEnabled={false}
                 innerGradient="linear-gradient(145deg,#1512D366 0%,#7B9FFF33 100%)"
                 avatarScale={founder.avatarScale}
                 avatarObjectPosition={founder.avatarObjectPosition}
