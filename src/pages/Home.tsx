@@ -11,7 +11,7 @@ import DepartmentsCard from "@/components/home/DepartmentsCard";
 import CollectiveChallengeCard from "@/components/home/CollectiveChallengeCard";
 import FitnessHubCard from "@/components/home/FitnessHubCard";
 import BrotherhoodCard from "@/components/home/BrotherhoodCard";
-import RecentRunsTile from "@/components/home/RecentRunsTile";
+import ArchivesCard from "@/components/home/ArchivesCard";
 import { BentoGrid, BentoTile } from "@/components/home/BentoGrid";
 import OnboardingModal from "@/components/onboarding/OnboardingModal";
 
@@ -118,11 +118,10 @@ export default function Home() {
         <BentoTile
           colBase={2}
           colMd={4}
-          to="/fitness#runs"
-          ariaLabel="See latest runs"
+          ariaLabel="Archives"
           className="md:order-3"
         >
-          <RecentRunsTile />
+          <ArchivesCard />
         </BentoTile>
       </BentoGrid>
 
