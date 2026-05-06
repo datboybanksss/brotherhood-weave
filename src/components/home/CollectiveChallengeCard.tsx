@@ -11,7 +11,7 @@ import { useStravaConnection } from "@/hooks/useStravaConnection";
 import { useVerifiedCounts } from "@/hooks/useVerifiedCounts";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { GOAL_KM } from "@/lib/fitness-constants";
-import { buildStravaAuthorizeUrl, triggerStravaSync } from "@/api/strava";
+import { getStravaAuthorizeUrl, triggerStravaSync } from "@/api/strava";
 
 export default function CollectiveChallengeCard() {
   const { totalKm, daysRemaining } = useCollectiveProgress();
@@ -25,7 +25,7 @@ export default function CollectiveChallengeCard() {
     if (!user) return;
     const nonce = crypto.randomUUID();
     sessionStorage.setItem("strava_oauth_nonce", nonce);
-    window.location.assign(buildStravaAuthorizeUrl(user.id, nonce));
+    getStravaAuthorizeUrl().then(url => window.location.assign(url));
   };
 
   const onSync = async () => {
