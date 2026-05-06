@@ -11,7 +11,7 @@ export default function Brotherhood() {
   const [search, setSearch] = useState("");
   const [selectedDept, setSelectedDept] = useState<string | null>(null);
 
-  const { data: members } = useQuery({
+  const { data: members } = useQuery<any[]>({
     queryKey: ["brotherhood"],
     queryFn: async () => {
       const { data, error } = await supabase
