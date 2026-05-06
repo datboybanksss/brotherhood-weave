@@ -122,5 +122,17 @@ Deno.serve(async (req) => {
     .update({ used_at: new Date().toISOString(), used_by_user_id: userId })
     .eq("id", inv.id);
 
+  // Audit log for admin grants
+  if (inv.is_admin) {
+    await admin.from('admin_audit_log').insert({
+      actor_id: inv.created_by ?? null,
+      target_id: userId,
+      action: 'admin_granted_via_invitation',
+      metadata: {
+        invitation_id: inv.id,
+      },
+    });
+  }
+
   return json({ success: true, user_id: userId });
 });

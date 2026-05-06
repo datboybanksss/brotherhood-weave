@@ -40,6 +40,31 @@ Deno.serve(async (req) => {
 
   // Use service role to delete the auth user (cascades to public.users via FK)
   const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
+  // SECURITY FIX: Revoke Strava token before deletion (POPIA compliance)
+  const { data: stravaConn } = await adminClient
+    .from('strava_connections')
+    .select('access_token')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (stravaConn?.access_token) {
+    await fetch('https://www.strava.com/oauth/deauthorize', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${stravaConn.access_token}` },
+    }).catch((e) => console.warn('Strava revoke failed (best-effort):', e));
+  }
+
+  // SECURITY FIX: Delete all user storage files (POPIA compliance)
+  const storageBuckets = ['profile-photos', 'fitness-videos', 'avatars'];
+  for (const bucket of storageBuckets) {
+    const { data: files } = await adminClient.storage.from(bucket).list(userId);
+    if (files && files.length > 0) {
+      const paths = files.map((f: { name: string }) => `${userId}/${f.name}`);
+      await adminClient.storage.from(bucket).remove(paths);
+    }
+  }
+
   const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
 
   if (deleteError) {

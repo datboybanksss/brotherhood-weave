@@ -1,7 +1,4 @@
 import { supabase } from "@/lib/supabase";
-import { STRAVA_CLIENT_ID, STRAVA_SCOPE } from "@/lib/strava-constants";
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 
 export interface StravaConnection {
   user_id: string;
@@ -40,16 +37,8 @@ export async function registerStravaWebhook() {
   return supabase.functions.invoke("strava_register_webhook");
 }
 
-export function buildStravaAuthorizeUrl(userId: string, nonce: string): string {
-  const redirectUri = `${SUPABASE_URL}/functions/v1/strava_callback`;
-  const state = `${nonce}.${userId}`;
-  const params = new URLSearchParams({
-    client_id: STRAVA_CLIENT_ID,
-    redirect_uri: redirectUri,
-    response_type: "code",
-    scope: STRAVA_SCOPE,
-    approval_prompt: "auto",
-    state,
-  });
-  return `https://www.strava.com/oauth/authorize?${params.toString()}`;
+export async function getStravaAuthorizeUrl(): Promise<string> {
+  const { data, error } = await supabase.functions.invoke('strava_initiate_oauth');
+  if (error) throw error;
+  return data.url;
 }

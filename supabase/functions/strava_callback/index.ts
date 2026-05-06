@@ -33,6 +33,33 @@ Deno.serve(async (req) => {
     return redirect({ strava: 'error', reason: 'bad_state' });
   }
 
+  // SECURITY FIX: Verify nonce server-side
+  const supabaseAdmin = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  );
+
+  const { data: nonceRow } = await supabaseAdmin
+    .from('strava_oauth_nonces')
+    .select('user_id, expires_at')
+    .eq('nonce', nonce)
+    .maybeSingle();
+
+  if (!nonceRow) {
+    return redirect({ strava: 'error', reason: 'invalid_nonce' });
+  }
+
+  if (nonceRow.user_id !== userId) {
+    return redirect({ strava: 'error', reason: 'nonce_user_mismatch' });
+  }
+
+  if (new Date(nonceRow.expires_at) < new Date()) {
+    return redirect({ strava: 'error', reason: 'nonce_expired' });
+  }
+
+  // Consume nonce immediately (one-time use)
+  await supabaseAdmin.from('strava_oauth_nonces').delete().eq('nonce', nonce);
+
   const tokenRes = await fetch('https://www.strava.com/api/v3/oauth/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -52,12 +79,7 @@ Deno.serve(async (req) => {
     return redirect({ strava: 'error', reason: 'malformed_token_response' });
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-  );
-
-  const { error: upsertErr } = await supabase.from('strava_connections').upsert({
+  const { error: upsertErr } = await supabaseAdmin.from('strava_connections').upsert({
     user_id: userId,
     strava_athlete_id: athleteId,
     access_token: tok.access_token,

@@ -30,18 +30,55 @@ function generateToken(): string {
     .join('')
 }
 
-// Auth note: this function uses verify_jwt = true in config.toml, so Supabase's
-// gateway validates the caller's JWT (anon or service_role) before the request
-// reaches this code. No in-function auth check is needed.
-
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
+  // SECURITY FIX: Require admin or service_role to send transactional emails
+  const authHeader = req.headers.get('Authorization') ?? '';
+  const token = authHeader.replace('Bearer ', '');
+  const parts = token.split('.');
+  let callerRole = '';
+  let callerUserId = '';
+  if (parts.length === 3) {
+    try {
+      const claims = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      callerRole = claims?.role ?? '';
+      callerUserId = claims?.sub ?? '';
+    } catch {
+      // malformed token — will fail the admin check below
+    }
+  }
+
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+
+  if (callerRole !== 'service_role') {
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey)
+    const { data: u } = await adminClient
+      .from('users')
+      .select('is_admin')
+      .eq('id', callerUserId)
+      .single();
+
+    if (!u?.is_admin) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: admin or service_role required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+  }
 
   if (!supabaseUrl || !supabaseServiceKey) {
     console.error('Missing required environment variables')

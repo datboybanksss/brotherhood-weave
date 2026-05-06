@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useStravaConnection } from "@/hooks/useStravaConnection";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { buildStravaAuthorizeUrl, disconnectStrava, triggerStravaSync } from "@/api/strava";
+import { getStravaAuthorizeUrl, disconnectStrava, triggerStravaSync } from "@/api/strava";
 
 export default function StravaConnection() {
   const { connection, isLoading } = useStravaConnection();
@@ -21,10 +21,13 @@ export default function StravaConnection() {
 
   if (isLoading || !user) return null;
 
-  const onConnect = () => {
-    const nonce = crypto.randomUUID();
-    sessionStorage.setItem("strava_oauth_nonce", nonce);
-    window.location.assign(buildStravaAuthorizeUrl(user.id, nonce));
+  const onConnect = async () => {
+    try {
+      const url = await getStravaAuthorizeUrl();
+      window.location.assign(url);
+    } catch (e) {
+      toast.error("Failed to initiate Strava connection.");
+    }
   };
 
   const onSync = async () => {

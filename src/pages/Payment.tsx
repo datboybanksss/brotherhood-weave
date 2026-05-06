@@ -13,11 +13,7 @@ export default function Payment() {
 
   const payMutation = useMutation({
     mutationFn: async () => {
-      console.log("Processing stub payment for:", user!.id);
-      const { error } = await supabase.rpc("process_payment", {
-        p_user_id: user!.id,
-        p_amount: 250,
-      });
+      const { error } = await supabase.functions.invoke("process_payment_v2", { body: { amount: 250 } });
       if (error) throw error;
     },
     onSuccess: () => {

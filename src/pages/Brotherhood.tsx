@@ -15,10 +15,8 @@ export default function Brotherhood() {
     queryKey: ["brotherhood"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("users")
-        .select("id, full_name, avatar_url, tier_id, title, is_admin, created_at, user_departments(department_id, is_primary, departments(name))")
-        .eq("payment_status", "paid")
-        .is("rejected_at", null);
+        .from("public_member_profiles")
+        .select("id, full_name, avatar_url, tier_id, title, is_admin, created_at, user_departments(department_id, is_primary, departments(name))");
       if (error) throw error;
       return data;
     },
