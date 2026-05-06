@@ -21,11 +21,13 @@ export default function CollectiveChallengeCard() {
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
 
-  const onConnect = () => {
-    if (!user) return;
-    const nonce = crypto.randomUUID();
-    sessionStorage.setItem("strava_oauth_nonce", nonce);
-    getStravaAuthorizeUrl().then(url => window.location.assign(url));
+  const onConnect = async () => {
+    try {
+      const url = await getStravaAuthorizeUrl();
+      window.location.assign(url);
+    } catch {
+      toast.error("Failed to initiate Strava connection.");
+    }
   };
 
   const onSync = async () => {

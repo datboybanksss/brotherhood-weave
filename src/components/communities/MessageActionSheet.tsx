@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Smile, Pencil, Trash2, Copy } from "lucide-react";
+import { Smile, Pencil, Trash2, Copy, Reply } from "lucide-react";
 import EmojiPicker from "./EmojiPicker";
 
 interface Props {
@@ -12,6 +12,7 @@ interface Props {
   onEdit: () => void;
   onDelete: () => void;
   onCopy: () => void;
+  onReply: () => void;
 }
 
 export default function MessageActionSheet(p: Props) {
@@ -25,6 +26,9 @@ export default function MessageActionSheet(p: Props) {
           <>
             <button onClick={() => setShowEmoji(true)} className="flex items-center gap-2 w-full p-3 hover:bg-accent rounded">
               <Smile className="h-4 w-4" /> Add reaction
+            </button>
+            <button onClick={() => { p.onReply(); p.onOpenChange(false); }} className="flex items-center gap-2 w-full p-3 hover:bg-accent rounded">
+              <Reply className="h-4 w-4" /> Reply
             </button>
             {p.canEdit && (
               <button onClick={() => { p.onEdit(); p.onOpenChange(false); }} className="flex items-center gap-2 w-full p-3 hover:bg-accent rounded">
