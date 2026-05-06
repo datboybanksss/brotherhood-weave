@@ -9,7 +9,7 @@ export async function approveApplicant(applicantId: string) {
 
   // Audit log
   const { data: { user: actor } } = await supabase.auth.getUser();
-  await (supabase.from("admin_audit_log") as any).insert({
+  await (supabase as any).from("admin_audit_log").insert({
     actor_id: actor?.id ?? null,
     target_id: applicantId,
     action: "applicant_approved",
@@ -26,7 +26,7 @@ export async function rejectApplicant(applicantId: string) {
 
   // Audit log
   const { data: { user: actor } } = await supabase.auth.getUser();
-  await (supabase.from("admin_audit_log") as any).insert({
+  await (supabase as any).from("admin_audit_log").insert({
     actor_id: actor?.id ?? null,
     target_id: applicantId,
     action: "applicant_rejected",
