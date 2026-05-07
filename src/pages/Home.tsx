@@ -69,6 +69,7 @@ export default function Home() {
           variant="hero"
           to={peerDestination}
           ariaLabel="Open peer profile"
+          className="row-span-2 md:row-span-1"
         >
           <PeerPartnerCard />
         </BentoTile>
@@ -98,20 +99,20 @@ export default function Home() {
         <BentoTile
           colBase={1}
           colMd={2}
-          variant="stat"
-          to="/fitness"
-          ariaLabel="Open fitness"
+          to="/communities"
+          ariaLabel="Open communities"
         >
-          <FitnessHubCard />
+          <DepartmentsCard />
         </BentoTile>
 
         <BentoTile
           colBase={1}
           colMd={2}
-          to="/communities"
-          ariaLabel="Open communities"
+          variant="stat"
+          to="/fitness"
+          ariaLabel="Open fitness"
         >
-          <DepartmentsCard />
+          <FitnessHubCard />
         </BentoTile>
 
         {showTier && (
