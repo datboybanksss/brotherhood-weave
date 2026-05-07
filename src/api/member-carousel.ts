@@ -5,13 +5,14 @@ export interface CarouselMember {
   full_name: string;
   featured_url: string;
   department: string | null;
+  created_at?: string | null;
 }
 
 export async function getMembersForCarousel(currentUserId: string): Promise<CarouselMember[]> {
   const [{ data: members, error: mErr }, { data: photos }] = await Promise.all([
     (supabase as any)
       .from("public_member_profiles")
-      .select("id, full_name, avatar_url, user_departments(is_primary, departments(name))")
+      .select("id, full_name, avatar_url, created_at, user_departments(is_primary, departments(name))")
       .neq("id", currentUserId),
     (supabase as any)
       .from("profile_photos")
@@ -34,7 +35,7 @@ export async function getMembersForCarousel(currentUserId: string): Promise<Caro
     const featured_url = photoMap.get(m.id) ?? m.avatar_url;
     if (!featured_url) continue;
     const dept = (m.user_departments as any[])?.find((d: any) => d.is_primary)?.departments?.name ?? null;
-    result.push({ id: m.id, full_name: m.full_name, featured_url, department: dept });
+    result.push({ id: m.id, full_name: m.full_name, featured_url, department: dept, created_at: m.created_at ?? null });
   }
   return result;
 }
