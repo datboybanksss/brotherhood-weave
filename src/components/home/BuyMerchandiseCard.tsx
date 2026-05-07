@@ -1,4 +1,4 @@
-import merchGraphic from "@/assets/buy-merchandise.png";
+import merchGraphic from "@/assets/buy-merchandise.gif";
 
 export default function BuyMerchandiseCard() {
   return (
