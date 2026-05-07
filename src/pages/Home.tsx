@@ -59,7 +59,6 @@ export default function Home() {
           variant="hero"
           to="/fitness#challenge"
           ariaLabel="Open 100km challenge"
-          className="bg-gradient-to-b from-brand-royal-tint to-white"
         >
           <CollectiveChallengeCard />
         </BentoTile>
@@ -80,7 +79,7 @@ export default function Home() {
           variant="stat"
           to="/brotherhood"
           ariaLabel="Open brotherhood"
-          className="bg-gradient-to-b from-brand-royal-tint to-white p-3 md:p-5"
+          className="p-3 md:p-5"
         >
           <BrotherhoodCard />
         </BentoTile>
@@ -102,7 +101,6 @@ export default function Home() {
           variant="stat"
           to="/fitness"
           ariaLabel="Open fitness"
-          className="bg-gradient-to-r from-brand-royal-tint to-white"
         >
           <FitnessHubCard />
         </BentoTile>
