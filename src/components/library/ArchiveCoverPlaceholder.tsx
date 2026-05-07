@@ -1,7 +1,11 @@
-import { Play, FileText, BookOpen } from "lucide-react";
 import { ARCHIVE_DOMAINS, FALLBACK_DOMAIN_META, type ArchiveContentType, type ArchiveDomain } from "@/lib/archive-domains";
+import EmojiIcon from "@/components/EmojiIcon";
 
-const ICONS = { video: Play, document: FileText, text: BookOpen };
+const TYPE_EMOJI = {
+  video:    { cp: "1f3ac", alt: "Clapper" },
+  document: { cp: "1f4c4", alt: "Document" },
+  text:     { cp: "1f4d6", alt: "Book" },
+} as const;
 
 interface Props {
   title: string;
@@ -12,7 +16,7 @@ interface Props {
 
 export default function ArchiveCoverPlaceholder({ title, contentType, domain, size = "sm" }: Props) {
   const meta = domain ? ARCHIVE_DOMAINS[domain] : FALLBACK_DOMAIN_META;
-  const Icon = ICONS[contentType];
+  const emoji = TYPE_EMOJI[contentType];
   const titleSize = size === "lg" ? "text-2xl" : "text-base";
   return (
     <div className={`relative w-full h-full flex flex-col justify-between p-3 ${meta.bg}`}>
@@ -21,7 +25,7 @@ export default function ArchiveCoverPlaceholder({ title, contentType, domain, si
         <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
           {domain ? meta.label : "Archive"}
         </span>
-        <Icon className={`h-5 w-5 ${meta.ring}`} />
+        <EmojiIcon cp={emoji.cp} alt={emoji.alt} size={20} />
       </div>
     </div>
   );

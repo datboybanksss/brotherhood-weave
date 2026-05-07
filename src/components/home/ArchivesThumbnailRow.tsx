@@ -1,10 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import { Play, FileText, BookOpen } from "lucide-react";
 import ArchiveCoverPlaceholder from "@/components/library/ArchiveCoverPlaceholder";
 import type { ArchiveCardItem } from "@/api/home-archives";
 import { stopTile } from "./BentoGrid";
+import EmojiIcon from "@/components/EmojiIcon";
 
-const ICONS = { video: Play, document: FileText, text: BookOpen };
+const TYPE_EMOJI = {
+  video:    { cp: "1f3ac", alt: "Clapper" },
+  document: { cp: "1f4c4", alt: "Document" },
+  text:     { cp: "1f4d6", alt: "Book" },
+} as const;
 
 export default function ArchivesThumbnailRow({ archives }: { archives: ArchiveCardItem[] }) {
   const navigate = useNavigate();
@@ -12,7 +16,7 @@ export default function ArchivesThumbnailRow({ archives }: { archives: ArchiveCa
   return (
     <div className="grid grid-cols-3 gap-2">
       {archives.map((a) => {
-        const Icon = ICONS[a.content_type];
+        const emoji = TYPE_EMOJI[a.content_type];
         return (
           <button
             key={a.id}
@@ -27,7 +31,7 @@ export default function ArchivesThumbnailRow({ archives }: { archives: ArchiveCa
               </div>
             )}
             <span className="absolute top-1.5 right-1.5 rounded-full bg-background/90 p-1">
-              <Icon className="h-3 w-3 text-foreground" />
+              <EmojiIcon cp={emoji.cp} alt={emoji.alt} size={12} />
             </span>
           </button>
         );

@@ -4,11 +4,11 @@ import { Lock, Video } from "lucide-react";
 import { EXERCISE_MAP, formatRepsLabel } from "@/lib/exercises";
 import type { SignedSubmission } from "@/api/fitness";
 import VideoPlayer from "./VideoPlayer";
+import EmojiIcon from "@/components/EmojiIcon";
 
 export default function FitnessActivityRow({ s }: { s: SignedSubmission }) {
   const [open, setOpen] = useState(false);
   const meta = EXERCISE_MAP[s.exercise];
-  const Icon = meta.icon;
   const playable = !!s.video_url;
   const locked = s.video_locked;
 
@@ -20,7 +20,7 @@ export default function FitnessActivityRow({ s }: { s: SignedSubmission }) {
         className="w-full flex items-center justify-between gap-2 text-left disabled:cursor-default"
       >
         <span className="inline-flex items-center gap-2 min-w-0">
-          <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+          <EmojiIcon cp={meta.emoji.cp} alt={meta.emoji.alt} size={16} />
           <span className="text-sm font-medium truncate">{meta.label}</span>
           <span className="text-sm text-muted-foreground">· {formatRepsLabel(s.exercise, s.reps)}</span>
           {playable && <Video className="h-3.5 w-3.5 text-primary shrink-0" />}

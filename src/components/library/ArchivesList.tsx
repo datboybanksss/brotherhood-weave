@@ -4,7 +4,7 @@ import { getArchives } from "@/api/archives";
 import ArchiveCard from "./ArchiveCard";
 import ArchiveDomainChips from "./ArchiveDomainChips";
 import ArchiveTypeFilter from "./ArchiveTypeFilter";
-import { Library } from "lucide-react";
+import EmojiIcon from "@/components/EmojiIcon";
 import type { ArchiveContentType, ArchiveDomain } from "@/lib/archive-domains";
 
 export default function ArchivesList() {
@@ -28,7 +28,7 @@ export default function ArchivesList() {
       <ArchiveTypeFilter value={type} onChange={setType} />
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
-          <Library className="h-8 w-8" />
+          <EmojiIcon cp="1f4da" alt="Books" size={32} className="opacity-50" />
           <p className="text-sm">No archive entries match your filters.</p>
         </div>
       ) : (

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Users, MessageCircle } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import { useCurrentPeerPartner } from "@/hooks/useCurrentPeerPartner";
 import { getOrCreateConversation } from "@/api/direct-messages";
 import { toast } from "sonner";
+import EmojiIcon from "@/components/EmojiIcon";
 
 export default function PulsePeerCard() {
   const { data } = useCurrentPeerPartner();
@@ -29,7 +29,7 @@ export default function PulsePeerCard() {
   return (
     <div className="rounded-2xl border border-stroke-hairline bg-card p-4 space-y-3">
       <div className="flex items-center gap-2">
-        <Users className="h-4 w-4 text-brand-royal" />
+        <EmojiIcon cp="1f465" alt="People" size={16} />
         <p className="text-xs uppercase tracking-wide text-text-muted font-medium">Your peer this week</p>
       </div>
       {partners.length === 0 ? (
@@ -54,10 +54,10 @@ export default function PulsePeerCard() {
                 <button
                   onClick={() => handleMessage(p.id)}
                   disabled={loadingId === p.id}
-                  className="p-2 rounded-full hover:bg-accent text-brand-royal disabled:opacity-40 shrink-0"
+                  className="p-2 rounded-full hover:bg-accent disabled:opacity-40 shrink-0"
                   aria-label={`Message ${p.full_name.split(" ")[0]}`}
                 >
-                  <MessageCircle className="h-4 w-4" />
+                  <EmojiIcon cp="1f4ac" alt="Message" size={18} />
                 </button>
               </div>
             ))}

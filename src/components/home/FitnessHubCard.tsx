@@ -1,10 +1,10 @@
-import { Dumbbell } from "lucide-react";
+import EmojiIcon from "@/components/EmojiIcon";
 
 export default function FitnessHubCard() {
   return (
     <div className="flex h-full flex-col justify-between">
       <div className="h-9 w-9 bg-brand-royal-tint flex items-center justify-center">
-        <Dumbbell className="h-5 w-5 text-brand-royal" />
+        <EmojiIcon cp="1f4aa" alt="Bicep" size={20} />
       </div>
       <div>
         <div className="text-heading-md font-semibold text-foreground">Fitness</div>

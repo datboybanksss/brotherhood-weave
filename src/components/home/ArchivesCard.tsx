@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRecentArchives } from "@/hooks/useRecentArchives";
 import ArchivesHero from "./ArchivesHero";
 import { stopTile } from "./BentoGrid";
 import archivesIcon from "@/assets/archives-icon.png";
+import EmojiIcon from "@/components/EmojiIcon";
 
 export default function ArchivesCard() {
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ export default function ArchivesCard() {
         <div className="aspect-video rounded-xl bg-muted animate-pulse" />
       ) : archives.length === 0 ? (
         <div className="flex flex-col items-center text-center gap-2 py-6">
-          <BookOpen className="h-8 w-8 text-muted-foreground" />
+          <EmojiIcon cp="1f4da" alt="Books" size={32} className="opacity-50" />
           <h3 className="text-sm font-semibold text-foreground">The Archives are coming</h3>
           <p className="text-xs text-muted-foreground max-w-xs">
             Videos, documents, and writing curated by the founders. Drop in soon.

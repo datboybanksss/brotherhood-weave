@@ -1,9 +1,14 @@
 import { Link } from "react-router-dom";
-import { Hash, Megaphone, Users as UsersIcon, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { formatDistanceToNowStrict } from "date-fns";
 import { useMyChannels } from "@/hooks/useMyChannels";
+import EmojiIcon from "@/components/EmojiIcon";
 
-const ICONS = { general: Hash, announcements: Megaphone, department: UsersIcon } as const;
+const CHANNEL_EMOJI = {
+  general:       { cp: "1f4ac", alt: "Chat" },
+  announcements: { cp: "1f4e2", alt: "Loudspeaker" },
+  department:    { cp: "1f465", alt: "People" },
+} as const;
 
 interface Props { onViewAll: () => void; }
 
@@ -22,7 +27,7 @@ export default function ActiveChannelsSummary({ onViewAll }: Props) {
       </div>
       <div>
         {top.map((c) => {
-          const Icon = ICONS[c.channel_type];
+          const emoji = CHANNEL_EMOJI[c.channel_type];
           const lm = c.last_message!;
           const preview = lm.deleted_at ? "[deleted]" : `${lm.sender_name ? lm.sender_name + ": " : ""}${lm.body.slice(0, 50)}`;
           const timeAgo = formatDistanceToNowStrict(new Date(lm.created_at))
@@ -36,7 +41,7 @@ export default function ActiveChannelsSummary({ onViewAll }: Props) {
               className="flex items-center gap-3 px-4 py-3 hover:bg-accent border-t border-stroke-hairline"
             >
               <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                <Icon className="h-4 w-4 text-muted-foreground" />
+                <EmojiIcon cp={emoji.cp} alt={emoji.alt} size={18} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm truncate">{c.name}</p>

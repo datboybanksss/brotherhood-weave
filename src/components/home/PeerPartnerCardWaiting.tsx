@@ -1,13 +1,13 @@
-import { Users } from "lucide-react";
 import { format } from "date-fns";
 import { getNextMondayDate } from "@/api/peers";
+import EmojiIcon from "@/components/EmojiIcon";
 
 export default function PeerPartnerCardWaiting() {
   const nextMon = getNextMondayDate();
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <Users className="h-5 w-5 text-muted-foreground" />
+        <EmojiIcon cp="1f465" alt="People" size={20} />
         <h2 className="text-sm font-semibold text-foreground">Your peer is on the way</h2>
       </div>
       <p className="text-sm text-muted-foreground leading-relaxed">

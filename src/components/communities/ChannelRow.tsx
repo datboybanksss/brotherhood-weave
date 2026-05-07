@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import { formatDistanceToNowStrict } from "date-fns";
-import { BellOff, Hash, Megaphone, Users as UsersIcon } from "lucide-react";
+import { BellOff } from "lucide-react";
 import type { ChannelListItem } from "@/api/channels";
+import EmojiIcon from "@/components/EmojiIcon";
 
-const ICONS = {
-  general: Hash,
-  announcements: Megaphone,
-  department: UsersIcon,
+const CHANNEL_EMOJI = {
+  general:       { cp: "1f4ac", alt: "Chat" },
+  announcements: { cp: "1f4e2", alt: "Loudspeaker" },
+  department:    { cp: "1f465", alt: "People" },
 } as const;
 
 function fmtTime(iso: string) {
@@ -14,7 +15,7 @@ function fmtTime(iso: string) {
 }
 
 export default function ChannelRow({ channel }: { channel: ChannelListItem }) {
-  const Icon = ICONS[channel.channel_type];
+  const emoji = CHANNEL_EMOJI[channel.channel_type];
   const lm = channel.last_message;
   const preview = lm
     ? lm.deleted_at
@@ -24,7 +25,7 @@ export default function ChannelRow({ channel }: { channel: ChannelListItem }) {
   return (
     <Link to={`/communities/${channel.slug}`} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent">
       <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
-        <Icon className="h-5 w-5 text-muted-foreground" />
+        <EmojiIcon cp={emoji.cp} alt={emoji.alt} size={20} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1">

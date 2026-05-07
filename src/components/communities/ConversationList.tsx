@@ -1,6 +1,6 @@
-import { MessageCircle } from "lucide-react";
 import { useConversations } from "@/hooks/useConversations";
 import ConversationRow from "./ConversationRow";
+import EmojiIcon from "@/components/EmojiIcon";
 
 export default function ConversationList() {
   const { data: conversations, isLoading } = useConversations();
@@ -12,7 +12,7 @@ export default function ConversationList() {
   if (!conversations || conversations.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 px-8 text-center space-y-3">
-        <MessageCircle className="h-10 w-10 text-muted-foreground/30" strokeWidth={1.5} />
+        <EmojiIcon cp="1f4ac" alt="Chat" size={40} className="opacity-30" />
         <p className="text-sm font-medium text-foreground">No conversations yet</p>
         <p className="text-xs text-muted-foreground leading-relaxed">
           Visit a member's profile to start a private conversation.

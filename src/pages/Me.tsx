@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Settings, Edit3, Share2 } from "lucide-react";
+import { Share2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -12,6 +12,7 @@ import TierProgressChecklist from "@/components/me/TierProgressChecklist";
 import AdminSection from "@/components/me/AdminSection";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import EmojiIcon from "@/components/EmojiIcon";
 
 export default function Me() {
   const { data: appUser } = useCurrentUser();
@@ -63,7 +64,7 @@ export default function Me() {
         aria-label="Account settings"
         className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground transition-colors"
       >
-        <Settings className="h-5 w-5" />
+        <EmojiIcon cp="2699-fe0f" alt="Settings" size={20} />
       </button>
 
       <PublicProfileHeader member={member} primaryDept={primary} />
@@ -74,7 +75,7 @@ export default function Me() {
           className="flex-1 min-h-[44px]"
           onClick={() => navigate("/account#bio")}
         >
-          <Edit3 className="h-4 w-4" /> Edit profile
+          <EmojiIcon cp="270f-fe0f" alt="Edit" size={16} className="mr-1" /> Edit profile
         </Button>
         <Button
           variant="outline"

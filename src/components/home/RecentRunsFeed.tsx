@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { CheckCircle2, Footprints, Zap } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import { useRecentRuns } from "@/hooks/useRecentRuns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import EmojiIcon from "@/components/EmojiIcon";
 
 export default function RecentRunsFeed() {
   const { runs, isLoading } = useRecentRuns(5);
@@ -16,7 +17,7 @@ export default function RecentRunsFeed() {
       <div className="space-y-3">
         {runs.map((r) => {
           const firstName = r.users?.full_name?.split(" ")[0] ?? "Member";
-          const ActIcon = r.activity_type === "Walk" ? Footprints : r.activity_type === "Run" ? Zap : null;
+          const actCp = r.activity_type === "Walk" ? "1f6b6" : r.activity_type === "Run" ? "1f3c3" : null;
           return (
             <div key={r.id} className="flex items-start gap-3">
               <Link to={`/member/${r.user_id}`}><Avatar userId={r.user_id} size="sm" /></Link>
@@ -24,7 +25,7 @@ export default function RecentRunsFeed() {
                 <div className="text-sm flex items-center gap-1.5 flex-wrap">
                   <Link to={`/member/${r.user_id}`} className="font-medium hover:underline">{firstName}</Link>
                   <span className="text-muted-foreground">ran</span>
-                  {ActIcon && <ActIcon className="w-3.5 h-3.5 text-muted-foreground" aria-hidden />}
+                  {actCp && <EmojiIcon cp={actCp} alt={r.activity_type ?? ""} size={14} />}
                   <span className="font-bold">{r.distance_km.toFixed(1)} km</span>
                   {r.verified_via === "strava" && (
                     <Tooltip>

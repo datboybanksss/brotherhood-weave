@@ -1,10 +1,16 @@
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
-import { MapPin, Globe, Calendar } from "lucide-react";
 import { useUpcomingEvents } from "@/hooks/useUpcomingEvents";
 import { useMyRSVP } from "@/hooks/useMyRSVP";
 import EventRSVPButtons from "@/components/events/EventRSVPButtons";
 import { CATEGORY_META } from "@/lib/event-meta";
+import EmojiIcon from "@/components/EmojiIcon";
+
+const LOC_EMOJI = {
+  in_person: { cp: "1f4cd", alt: "Pin" },
+  remote:    { cp: "1f310", alt: "Globe" },
+  hybrid:    { cp: "1f4c5", alt: "Calendar" },
+} as const;
 
 export default function NextEventBanner() {
   const { data: events } = useUpcomingEvents(1);
@@ -14,7 +20,7 @@ export default function NextEventBanner() {
   if (!event) return null;
 
   const cat = CATEGORY_META[event.category];
-  const LocIcon = event.format === "in_person" ? MapPin : event.format === "remote" ? Globe : Calendar;
+  const locEmoji = LOC_EMOJI[event.format as keyof typeof LOC_EMOJI] ?? LOC_EMOJI.hybrid;
 
   return (
     <div className="relative rounded-2xl overflow-hidden min-h-[190px] border border-stroke-hairline">
@@ -35,7 +41,8 @@ export default function NextEventBanner() {
           <span>{format(new Date(event.starts_at), "EEE MMM d · h:mm a")}</span>
           {event.location && (
             <span className="flex items-center gap-1">
-              <LocIcon className="h-3 w-3" />{event.location}
+              <EmojiIcon cp={locEmoji.cp} alt={locEmoji.alt} size={12} />
+              {event.location}
             </span>
           )}
         </div>

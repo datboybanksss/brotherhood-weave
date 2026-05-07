@@ -1,5 +1,6 @@
-import { CheckCircle, Circle, Lock, Clock } from "lucide-react";
+import { Circle } from "lucide-react";
 import { format } from "date-fns";
+import EmojiIcon from "@/components/EmojiIcon";
 
 interface Props {
   index: number;
@@ -10,12 +11,13 @@ interface Props {
 }
 
 export default function LessonRow({ index, title, status, releaseDate, onTap }: Props) {
-  const icons = {
-    complete: <CheckCircle className="h-5 w-5 text-primary" />,
+  const icon = {
+    complete:  <EmojiIcon cp="2705"      alt="Complete"   size={20} />,
     available: <Circle className="h-5 w-5 text-muted-foreground" />,
-    locked: <Lock className="h-5 w-5 text-muted-foreground" />,
-    scheduled: <Clock className="h-5 w-5 text-amber-500" />,
-  };
+    locked:    <EmojiIcon cp="1f512"     alt="Locked"     size={20} />,
+    scheduled: <EmojiIcon cp="23f0"      alt="Scheduled"  size={20} />,
+  }[status];
+
   const disabled = status === "locked" || status === "scheduled";
 
   return (
@@ -24,7 +26,7 @@ export default function LessonRow({ index, title, status, releaseDate, onTap }: 
       disabled={disabled}
       className="flex items-center gap-3 w-full p-3 rounded-lg border border-border hover:bg-accent/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-left"
     >
-      {icons[status]}
+      {icon}
       <div className="flex-1">
         <div className="text-sm font-medium text-foreground">{index}. {title}</div>
         {status === "scheduled" && releaseDate && (

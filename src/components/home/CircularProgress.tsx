@@ -1,5 +1,5 @@
-import { Trophy } from "lucide-react";
 import stravaLogo from "@/assets/strava-logo.png";
+import EmojiIcon from "@/components/EmojiIcon";
 
 interface Props {
   value: number;
@@ -35,7 +35,7 @@ export default function CircularProgress({ value, max, label, sublabel }: Props)
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-2">
         <div className="font-mono text-[20px] font-semibold leading-tight">{label ?? display}</div>
         <div className="text-xs text-muted-foreground mt-1">{sub}</div>
-        {done && <Trophy className="w-5 h-5 mt-2 text-[#1A7F5A]" />}
+        {done && <EmojiIcon cp="1f3c6" alt="Trophy" size={20} className="mt-2" />}
         <div className="mt-1.5 flex items-center gap-1 text-[10px] text-muted-foreground">
           <img src={stravaLogo} alt="Strava" className="w-3 h-3" />
           <span>Powered by Strava</span>

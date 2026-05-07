@@ -1,8 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Star, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useMyDepartmentChannels } from "@/hooks/useMyDepartmentChannels";
 import { stopTile } from "./BentoGrid";
 import departmentsIcon from "@/assets/departments-icon.png";
+import EmojiIcon from "@/components/EmojiIcon";
 
 export default function DepartmentsCard() {
   const { data, isLoading } = useMyDepartmentChannels();
@@ -34,7 +35,7 @@ export default function DepartmentsCard() {
             >
               <span className="flex items-center gap-2">
                 <span className="font-semibold text-sm">{d.name}</span>
-                {d.is_primary && <Star className="w-3.5 h-3.5 fill-current text-amber-500" />}
+                {d.is_primary && <EmojiIcon cp="2b50" alt="Star" size={14} />}
               </span>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
