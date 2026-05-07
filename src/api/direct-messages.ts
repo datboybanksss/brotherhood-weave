@@ -140,7 +140,7 @@ export async function sendDirectMessage(
 
   const { data, error } = await supabase
     .from("direct_messages")
-    .insert(payload)
+    .insert(payload as never)
     .select(DM_SELECT)
     .single();
   if (error) throw error;
