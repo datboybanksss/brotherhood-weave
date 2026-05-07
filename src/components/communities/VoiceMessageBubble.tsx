@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Play, Pause } from "lucide-react";
 
 function formatDur(s: number) {
@@ -11,6 +11,20 @@ export default function VoiceMessageBubble({ url }: { url: string }) {
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const tick = () => {
+      const a = audioRef.current;
+      if (a && a.duration && isFinite(a.duration)) {
+        setCurrentTime(a.currentTime);
+        setProgress((a.currentTime / a.duration) * 100);
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    if (playing) rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, [playing]);
 
   const toggle = () => {
     const a = audioRef.current;
@@ -35,13 +49,6 @@ export default function VoiceMessageBubble({ url }: { url: string }) {
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onEnded={() => { setPlaying(false); setProgress(0); setCurrentTime(0); }}
-        onTimeUpdate={() => {
-          const a = audioRef.current;
-          if (!a) return;
-          setCurrentTime(a.currentTime);
-          if (a.duration && isFinite(a.duration))
-            setProgress((a.currentTime / a.duration) * 100);
-        }}
         onLoadedMetadata={() => {
           const a = audioRef.current;
           if (a && isFinite(a.duration)) setDuration(a.duration);
@@ -63,7 +70,7 @@ export default function VoiceMessageBubble({ url }: { url: string }) {
         >
           <div
             className="h-full bg-primary rounded-full"
-            style={{ width: `${progress}%`, transition: "width 0.1s linear" }}
+            style={{ width: `${progress}%` }}
           />
         </div>
         <p className="text-[10px] text-muted-foreground tabular-nums">
