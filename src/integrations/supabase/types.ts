@@ -895,7 +895,7 @@ export type Database = {
         Row: {
           attachment_type: string | null
           attachment_url: string | null
-          body: string | null
+          body: string
           channel_id: string
           client_temp_id: string | null
           created_at: string
@@ -909,7 +909,7 @@ export type Database = {
         Insert: {
           attachment_type?: string | null
           attachment_url?: string | null
-          body?: string | null
+          body: string
           channel_id: string
           client_temp_id?: string | null
           created_at?: string
@@ -923,7 +923,7 @@ export type Database = {
         Update: {
           attachment_type?: string | null
           attachment_url?: string | null
-          body?: string | null
+          body?: string
           channel_id?: string
           client_temp_id?: string | null
           created_at?: string
