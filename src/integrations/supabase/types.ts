@@ -77,6 +77,13 @@ export type Database = {
             foreignKeyName: "archives_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "archives_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
@@ -124,6 +131,13 @@ export type Database = {
             columns: ["channel_id"]
             isOneToOne: false
             referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "member_avatars"
             referencedColumns: ["id"]
           },
           {
@@ -325,6 +339,13 @@ export type Database = {
             foreignKeyName: "event_rsvps_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_rsvps_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
@@ -384,6 +405,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "events_created_by_fkey"
             columns: ["created_by"]
@@ -448,6 +476,13 @@ export type Database = {
             foreignKeyName: "invitations_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
@@ -456,6 +491,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_used_by_user_id_fkey"
+            columns: ["used_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "member_avatars"
             referencedColumns: ["id"]
           },
           {
@@ -545,6 +587,13 @@ export type Database = {
             foreignKeyName: "meeting_attendance_marked_by_fkey"
             columns: ["marked_by"]
             isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_attendance_marked_by_fkey"
+            columns: ["marked_by"]
+            isOneToOne: false
             referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
@@ -560,6 +609,13 @@ export type Database = {
             columns: ["meeting_id"]
             isOneToOne: false
             referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_attendance_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "member_avatars"
             referencedColumns: ["id"]
           },
           {
@@ -602,6 +658,13 @@ export type Database = {
             foreignKeyName: "meetings_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
@@ -639,6 +702,13 @@ export type Database = {
             columns: ["message_id"]
             isOneToOne: false
             referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "member_avatars"
             referencedColumns: ["id"]
           },
           {
@@ -703,6 +773,13 @@ export type Database = {
             foreignKeyName: "messages_deleted_by_fkey"
             columns: ["deleted_by"]
             isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
             referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
@@ -711,6 +788,13 @@ export type Database = {
             columns: ["deleted_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "member_avatars"
             referencedColumns: ["id"]
           },
           {
@@ -794,6 +878,13 @@ export type Database = {
             foreignKeyName: "payments_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
@@ -839,6 +930,13 @@ export type Database = {
             foreignKeyName: "peer_pairings_member_a_id_fkey"
             columns: ["member_a_id"]
             isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_pairings_member_a_id_fkey"
+            columns: ["member_a_id"]
+            isOneToOne: false
             referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
@@ -853,6 +951,13 @@ export type Database = {
             foreignKeyName: "peer_pairings_member_b_id_fkey"
             columns: ["member_b_id"]
             isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_pairings_member_b_id_fkey"
+            columns: ["member_b_id"]
+            isOneToOne: false
             referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
@@ -861,6 +966,13 @@ export type Database = {
             columns: ["member_b_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_pairings_member_c_id_fkey"
+            columns: ["member_c_id"]
+            isOneToOne: false
+            referencedRelation: "member_avatars"
             referencedColumns: ["id"]
           },
           {
@@ -927,6 +1039,13 @@ export type Database = {
             foreignKeyName: "playbooks_author_id_fkey"
             columns: ["author_id"]
             isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playbooks_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
             referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
@@ -962,6 +1081,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "profile_photos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profile_photos_user_id_fkey"
             columns: ["user_id"]
@@ -1010,6 +1136,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "strava_connections_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "strava_connections_user_id_fkey"
             columns: ["user_id"]
@@ -1113,6 +1246,13 @@ export type Database = {
             foreignKeyName: "submissions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
@@ -1198,6 +1338,13 @@ export type Database = {
             foreignKeyName: "user_departments_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_departments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
@@ -1235,6 +1382,13 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_lesson_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "member_avatars"
             referencedColumns: ["id"]
           },
           {
@@ -1287,6 +1441,13 @@ export type Database = {
             foreignKeyName: "user_module_progress_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_module_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
@@ -1313,6 +1474,7 @@ export type Database = {
           interview_completed: boolean
           invited_via_token: string | null
           is_admin: boolean
+          last_seen_at: string | null
           membership_started_at: string | null
           onboarded_at: string | null
           payment_status: Database["public"]["Enums"]["payment_status_enum"]
@@ -1333,6 +1495,7 @@ export type Database = {
           interview_completed?: boolean
           invited_via_token?: string | null
           is_admin?: boolean
+          last_seen_at?: string | null
           membership_started_at?: string | null
           onboarded_at?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status_enum"]
@@ -1353,6 +1516,7 @@ export type Database = {
           interview_completed?: boolean
           invited_via_token?: string | null
           is_admin?: boolean
+          last_seen_at?: string | null
           membership_started_at?: string | null
           onboarded_at?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status_enum"]
@@ -1412,6 +1576,13 @@ export type Database = {
             foreignKeyName: "workouts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workouts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "public_member_profiles"
             referencedColumns: ["id"]
           },
@@ -1426,6 +1597,16 @@ export type Database = {
       }
     }
     Views: {
+      member_avatars: {
+        Row: {
+          avatar_url: string | null
+          full_name: string | null
+          id: string | null
+          last_seen_at: string | null
+          ring_color: string | null
+        }
+        Relationships: []
+      }
       public_member_profiles: {
         Row: {
           avatar_url: string | null
@@ -1435,6 +1616,8 @@ export type Database = {
           email_visible: boolean | null
           full_name: string | null
           id: string | null
+          is_admin: boolean | null
+          last_seen_at: string | null
           membership_started_at: string | null
           tier_id: string | null
           title: string | null
@@ -1447,6 +1630,8 @@ export type Database = {
           email_visible?: boolean | null
           full_name?: string | null
           id?: string | null
+          is_admin?: boolean | null
+          last_seen_at?: string | null
           membership_started_at?: string | null
           tier_id?: string | null
           title?: string | null
@@ -1459,6 +1644,8 @@ export type Database = {
           email_visible?: boolean | null
           full_name?: string | null
           id?: string | null
+          is_admin?: boolean | null
+          last_seen_at?: string | null
           membership_started_at?: string | null
           tier_id?: string | null
           title?: string | null
