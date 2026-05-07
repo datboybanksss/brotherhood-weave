@@ -69,13 +69,13 @@ export default function Avatar({ userId, size = "md", showStatus = true }: Avata
           {initials}
         </div>
       )}
-      {showStatus && (
+      {showStatus && isOnline && (
         <span
           className="absolute bottom-0 right-0 rounded-full border-2 border-background"
           style={{
             width: dot,
             height: dot,
-            backgroundColor: isOnline ? "#22c55e" : "#9ca3af",
+            backgroundColor: "#22c55e",
           }}
         />
       )}
