@@ -80,7 +80,7 @@ export default function Home() {
           variant="stat"
           to="/brotherhood"
           ariaLabel="Open brotherhood"
-          className="p-3 pb-5 md:p-5"
+          className="p-3 pb-8 md:p-5"
         >
           <BrotherhoodCard />
         </BentoTile>
