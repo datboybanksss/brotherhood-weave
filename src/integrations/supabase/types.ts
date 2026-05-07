@@ -200,6 +200,68 @@ export type Database = {
           },
         ]
       }
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          last_read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          last_read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          last_read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       departments: {
         Row: {
           id: string
@@ -217,6 +279,108 @@ export type Database = {
           slug?: string
         }
         Relationships: []
+      }
+      direct_messages: {
+        Row: {
+          attachment_type: string | null
+          attachment_url: string | null
+          body: string | null
+          client_temp_id: string | null
+          conversation_id: string
+          created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          edited_at: string | null
+          id: string
+          reply_to_id: string | null
+          sender_id: string
+        }
+        Insert: {
+          attachment_type?: string | null
+          attachment_url?: string | null
+          body?: string | null
+          client_temp_id?: string | null
+          conversation_id: string
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          edited_at?: string | null
+          id?: string
+          reply_to_id?: string | null
+          sender_id: string
+        }
+        Update: {
+          attachment_type?: string | null
+          attachment_url?: string | null
+          body?: string | null
+          client_temp_id?: string | null
+          conversation_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          edited_at?: string | null
+          id?: string
+          reply_to_id?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "direct_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_send_log: {
         Row: {
@@ -729,6 +893,8 @@ export type Database = {
       }
       messages: {
         Row: {
+          attachment_type: string | null
+          attachment_url: string | null
           body: string
           channel_id: string
           client_temp_id: string | null
@@ -737,9 +903,12 @@ export type Database = {
           deleted_by: string | null
           edited_at: string | null
           id: string
+          reply_to_id: string | null
           sender_id: string
         }
         Insert: {
+          attachment_type?: string | null
+          attachment_url?: string | null
           body: string
           channel_id: string
           client_temp_id?: string | null
@@ -748,9 +917,12 @@ export type Database = {
           deleted_by?: string | null
           edited_at?: string | null
           id?: string
+          reply_to_id?: string | null
           sender_id: string
         }
         Update: {
+          attachment_type?: string | null
+          attachment_url?: string | null
           body?: string
           channel_id?: string
           client_temp_id?: string | null
@@ -759,6 +931,7 @@ export type Database = {
           deleted_by?: string | null
           edited_at?: string | null
           id?: string
+          reply_to_id?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -788,6 +961,13 @@ export type Database = {
             columns: ["deleted_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
           {
@@ -1672,6 +1852,16 @@ export type Database = {
       }
       evaluate_tier_upgrade: { Args: { target_user_id: string }; Returns: Json }
       get_collective_distance: { Args: never; Returns: number }
+      get_conversation_other_user: {
+        Args: { conv_id: string }
+        Returns: {
+          avatar_url: string
+          full_name: string
+          id: string
+          last_seen_at: string
+          ring_color: string
+        }[]
+      }
       get_event_rsvp_summary: {
         Args: { _event_id: string }
         Returns: {
@@ -1694,7 +1884,27 @@ export type Database = {
           video_count: number
         }[]
       }
+      get_my_conversations: {
+        Args: never
+        Returns: {
+          conversation_id: string
+          last_message_attachment_url: string
+          last_message_body: string
+          last_message_created_at: string
+          last_message_sender_id: string
+          other_avatar_url: string
+          other_full_name: string
+          other_last_seen_at: string
+          other_ring_color: string
+          other_user_id: string
+          unread_count: number
+        }[]
+      }
       get_my_rsvp: { Args: { _event_id: string }; Returns: string }
+      get_or_create_conversation: {
+        Args: { other_user_id: string }
+        Returns: string
+      }
       get_unread_count: {
         Args: { _channel_id: string; _user_id: string }
         Returns: number
@@ -1756,6 +1966,10 @@ export type Database = {
       }
       is_channel_member: {
         Args: { _channel_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_conversation_participant: {
+        Args: { conv_id: string }
         Returns: boolean
       }
       is_current_user_admin: { Args: never; Returns: boolean }
