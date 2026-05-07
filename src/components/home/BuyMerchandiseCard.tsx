@@ -6,7 +6,7 @@ export default function BuyMerchandiseCard() {
       <img
         src={merchGraphic}
         alt=""
-        className="h-12 w-auto object-contain"
+        className="h-20 w-auto object-contain"
         loading="lazy"
       />
       <div className="text-label font-medium text-foreground">
