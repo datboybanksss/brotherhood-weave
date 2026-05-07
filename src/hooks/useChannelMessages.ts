@@ -32,22 +32,36 @@ export function useChannelMessages(channelId: string | undefined) {
   const loadInitial = useCallback(async () => {
     if (!channelId) return;
     setLoading(true);
-    const rows = await getMessageHistory(channelId);
-    setMessages(rows);
-    setHasMore(rows.length === 50);
-    const r = await getReactionsForMessages(rows.map((m) => m.id));
-    setReactions(r);
-    setLoading(false);
+    try {
+      const rows = await getMessageHistory(channelId);
+      setMessages(rows);
+      setHasMore(rows.length === 50);
+      const r = await getReactionsForMessages(rows.map((m) => m.id));
+      setReactions(r);
+    } catch (error) {
+      console.error("Failed to load channel messages", error);
+      toast.error("Could not load messages right now.");
+      setMessages([]);
+      setReactions([]);
+      setHasMore(false);
+    } finally {
+      setLoading(false);
+    }
   }, [channelId]);
 
   const loadOlder = useCallback(async () => {
     if (!channelId || messages.length === 0) return;
-    const oldest = messages[0].created_at;
-    const older = await getMessageHistory(channelId, oldest);
-    if (older.length < 50) setHasMore(false);
-    setMessages((prev) => [...older, ...prev]);
-    const r = await getReactionsForMessages(older.map((m) => m.id));
-    setReactions((prev) => [...prev, ...r]);
+    try {
+      const oldest = messages[0].created_at;
+      const older = await getMessageHistory(channelId, oldest);
+      if (older.length < 50) setHasMore(false);
+      setMessages((prev) => [...older, ...prev]);
+      const r = await getReactionsForMessages(older.map((m) => m.id));
+      setReactions((prev) => [...prev, ...r]);
+    } catch (error) {
+      console.error("Failed to load older messages", error);
+      toast.error("Could not load older messages.");
+    }
   }, [channelId, messages]);
 
   useEffect(() => {
