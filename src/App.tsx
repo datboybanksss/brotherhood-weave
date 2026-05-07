@@ -33,6 +33,7 @@ import Fitness from "@/pages/Fitness";
 import Communities from "@/pages/Communities";
 import ChannelView from "@/pages/ChannelView";
 import EventDetail from "@/pages/EventDetail";
+import ConversationView from "@/pages/ConversationView";
 import AdminEvents from "@/pages/admin/Events";
 import EventForm from "@/components/admin/EventForm";
 import AuthCallback from "@/pages/AuthCallback";
@@ -88,6 +89,7 @@ const App = () => (
                 <Route path="/member/:id" element={<MemberProfile />} />
                 <Route path="/fitness" element={<Fitness />} />
                 <Route path="/events/:id" element={<EventDetail />} />
+                <Route path="/messages/:id" element={<ConversationView />} />
               </Route>
             </Route>
             <Route path="*" element={<NotFound />} />

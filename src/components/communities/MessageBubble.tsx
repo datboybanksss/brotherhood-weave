@@ -16,9 +16,11 @@ interface Props {
   currentUserId: string;
   isAdmin: boolean;
   onReply: (message: MessageRow) => void;
+  onDeleteOverride?: () => Promise<void>;
+  onSaveEditOverride?: (body: string) => Promise<void>;
 }
 
-export default function MessageBubble({ message, showHeader, reactions, currentUserId, isAdmin, onReply }: Props) {
+export default function MessageBubble({ message, showHeader, reactions, currentUserId, isAdmin, onReply, onDeleteOverride, onSaveEditOverride }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(message.body ?? "");
@@ -31,7 +33,13 @@ export default function MessageBubble({ message, showHeader, reactions, currentU
 
   const handleSaveEdit = async () => {
     if (draft.trim() === "" || draft === message.body) { setEditing(false); return; }
-    const { error } = await (async () => { try { await editMessage(message.id, draft); return { error: null }; } catch (e) { return { error: e as Error }; } })();
+    const { error } = await (async () => {
+      try {
+        if (onSaveEditOverride) await onSaveEditOverride(draft);
+        else await editMessage(message.id, draft);
+        return { error: null };
+      } catch (e) { return { error: e as Error }; }
+    })();
     if (error) toast.error(error.message); else setEditing(false);
   };
 
@@ -98,7 +106,7 @@ export default function MessageBubble({ message, showHeader, reactions, currentU
         canDelete={(isOwn || isAdmin) && !isDeleted}
         onReact={(e) => toggleReaction(message.id, currentUserId, e)}
         onEdit={() => setEditing(true)}
-        onDelete={async () => { try { await softDeleteMessage(message.id); } catch (e: any) { toast.error(e.message); } }}
+        onDelete={async () => { try { if (onDeleteOverride) await onDeleteOverride(); else await softDeleteMessage(message.id); } catch (e: any) { toast.error(e.message); } }}
         onCopy={() => { navigator.clipboard.writeText(message.body ?? ""); toast.success("Copied"); }}
         onReply={() => onReply(message)}
       />

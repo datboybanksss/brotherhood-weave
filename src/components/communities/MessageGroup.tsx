@@ -9,9 +9,11 @@ interface Props {
   currentUserId: string;
   isAdmin: boolean;
   onReply: (message: MessageRow) => void;
+  onDeleteMessage?: (messageId: string) => Promise<void>;
+  onSaveEditMessage?: (messageId: string, body: string) => Promise<void>;
 }
 
-export default function MessageGroup({ messages, reactions, currentUserId, isAdmin, onReply }: Props) {
+export default function MessageGroup({ messages, reactions, currentUserId, isAdmin, onReply, onDeleteMessage, onSaveEditMessage }: Props) {
   return (
     <div className="py-1">
       {messages.map((m, i) => (
@@ -23,6 +25,8 @@ export default function MessageGroup({ messages, reactions, currentUserId, isAdm
           currentUserId={currentUserId}
           isAdmin={isAdmin}
           onReply={onReply}
+          onDeleteOverride={onDeleteMessage ? () => onDeleteMessage(m.id) : undefined}
+          onSaveEditOverride={onSaveEditMessage ? (body) => onSaveEditMessage(m.id, body) : undefined}
         />
       ))}
     </div>

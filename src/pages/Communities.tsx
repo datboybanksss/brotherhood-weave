@@ -2,13 +2,15 @@ import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMyChannels } from "@/hooks/useMyChannels";
 import { useUpcomingEvents } from "@/hooks/useUpcomingEvents";
+import { useTotalUnreadDMs } from "@/hooks/useConversations";
 import ChannelRow from "@/components/communities/ChannelRow";
 import EventsCalendar from "@/components/communities/EventsCalendar";
 import EventRowWithRSVP from "@/components/communities/EventRowWithRSVP";
 import PulseTab from "@/components/communities/PulseTab";
+import ConversationList from "@/components/communities/ConversationList";
 import type { ChannelListItem } from "@/api/channels";
 
-type Layer = "pulse" | "channels" | "events";
+type Layer = "pulse" | "channels" | "events" | "messages";
 
 function GroupedChannels({ channels }: { channels: ChannelListItem[] }) {
   const pinned = channels.filter((c) => c.channel_type === "announcements");
@@ -45,6 +47,7 @@ export default function Communities() {
   const layer = (params.get("layer") ?? "pulse") as Layer;
   const { data: channels, isLoading: chLoading } = useMyChannels();
   const { data: events, isLoading: evLoading } = useUpcomingEvents(20);
+  const unreadDMs = useTotalUnreadDMs();
 
   const setLayer = (l: string) => setParams({ layer: l });
 
@@ -53,10 +56,16 @@ export default function Communities() {
       <div className="sticky top-0 bg-background z-10 px-4 pt-4 pb-0 border-b border-border space-y-3">
         <h1 className="text-xl font-bold text-foreground">Communities</h1>
         <Tabs value={layer} onValueChange={setLayer}>
-          <TabsList className="grid grid-cols-3 w-full">
+          <TabsList className="grid grid-cols-4 w-full">
             <TabsTrigger value="pulse">Pulse</TabsTrigger>
             <TabsTrigger value="channels">Channels</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
+            <TabsTrigger value="messages" className="relative">
+              Messages
+              {unreadDMs > 0 && (
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary" />
+              )}
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -70,6 +79,8 @@ export default function Communities() {
           ? <p className="text-sm text-muted-foreground p-4">Loading…</p>
           : <GroupedChannels channels={channels ?? []} />
       )}
+
+      {layer === "messages" && <ConversationList />}
 
       {layer === "events" && (
         <div className="p-4 space-y-6 pb-10">
