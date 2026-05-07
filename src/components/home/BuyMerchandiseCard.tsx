@@ -9,8 +9,8 @@ export default function BuyMerchandiseCard() {
         className="h-20 w-auto object-contain"
         loading="lazy"
       />
-      <div className="text-label font-medium text-foreground">
-        Buy merchandise
+      <div className="text-label text-foreground font-sans font-bold text-sm">
+        Go To Shop
       </div>
     </div>
   );
