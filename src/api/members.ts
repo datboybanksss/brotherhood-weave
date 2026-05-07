@@ -11,6 +11,7 @@ export interface PublicMember {
   title: string | null;
   current_city: string | null;
   email_visible: boolean;
+  last_seen_at: string | null;
 }
 
 export async function getPublicMemberById(id: string): Promise<PublicMember | null> {

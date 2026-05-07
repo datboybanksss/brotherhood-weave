@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 import { useAuth } from "./useAuth";
 import { getMessageHistory, fetchMessageById, sendMessage, MessageRow } from "@/api/messages";
 import { getReactionsForMessages, ReactionRow } from "@/api/reactions";
@@ -153,6 +154,7 @@ export function useChannelMessages(channelId: string | undefined) {
       } catch {
         setMessages((prev) => prev.map((m) => (m.id === optimistic.id ? { ...m, status: "failed" } : m)));
         pendingTempIds.current.delete(tempId);
+        toast.error("Failed to send message. Tap to retry.");
       }
     },
     [channelId, user]

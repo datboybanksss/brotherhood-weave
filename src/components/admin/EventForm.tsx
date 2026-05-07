@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -15,11 +15,13 @@ import { CATEGORY_KEYS, CATEGORY_META, FORMAT_KEYS, FORMAT_META, type EventCateg
 import { createEvent, updateEvent, uploadEventCover } from "@/api/admin-events";
 
 type F = { title: string; description: string; category: EventCategory; format: EventFormat; location: string; starts_at: string; ends_at: string; cover_url: string | null; is_published: boolean };
-const blank: F = { title: "", description: "", category: "fitness", format: "in_person", location: "", starts_at: "", ends_at: "", cover_url: null, is_published: true };
 
 export default function EventForm() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const nav = useNavigate(); const qc = useQueryClient(); const { user } = useAuth();
+  const dateParam = searchParams.get("date");
+  const blank: F = { title: "", description: "", category: "fitness", format: "in_person", location: "", starts_at: dateParam ? `${dateParam}T10:00` : "", ends_at: "", cover_url: null, is_published: true };
   const isEdit = !!id;
   const { data: existing } = useQuery({ queryKey: ["adminEvent", id], queryFn: async () => {
     const { data, error } = await supabase.from("events").select("*").eq("id", id!).single();
