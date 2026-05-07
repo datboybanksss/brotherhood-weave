@@ -38,9 +38,9 @@ export default function FounderCarousel({ founders }: { founders: Founder[] }) {
             <div key={founder.id} className="w-full shrink-0 flex justify-center px-4">
               <ProfileCard
                 name={founder.full_name}
-                title={founder.title ?? "Founder"}
+                title="Co-founder"
                 handle={founder.full_name.toLowerCase().replace(/\s+/g, '.')}
-                status="Founder"
+                status="Co-founder"
                 avatarUrl={founder.cardImageUrl ?? founder.avatar_url ?? ''}
                 miniAvatarUrl={founder.avatar_url ?? undefined}
                 contactText="View Profile"
