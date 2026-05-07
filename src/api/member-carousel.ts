@@ -32,8 +32,7 @@ export async function getMembersForCarousel(currentUserId: string): Promise<Caro
 
   const result: CarouselMember[] = [];
   for (const m of (members ?? []) as any[]) {
-    const featured_url = photoMap.get(m.id) ?? m.avatar_url;
-    if (!featured_url) continue;
+    const featured_url = photoMap.get(m.id) ?? m.avatar_url ?? null;
     const dept = (m.user_departments as any[])?.find((d: any) => d.is_primary)?.departments?.name ?? null;
     result.push({ id: m.id, full_name: m.full_name, featured_url, department: dept, created_at: m.created_at ?? null });
   }
