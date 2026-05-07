@@ -142,7 +142,7 @@ export default function ConversationView() {
     : null;
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-background">
+    <div className="flex flex-col bg-background" style={{ height: 'calc(100dvh - 4rem - env(safe-area-inset-bottom, 0px))' }}>
       {/* Header */}
       <header className="flex items-center gap-2 px-2 py-3 border-b border-border bg-background sticky top-0 z-10">
         <button
