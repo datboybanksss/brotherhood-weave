@@ -11,7 +11,7 @@ interface AvatarProps {
   showStatus?: boolean;
 }
 
-export default function Avatar({ userId, size = "md", showStatus = false }: AvatarProps) {
+export default function Avatar({ userId, size = "md", showStatus = true }: AvatarProps) {
   const px = sizes[size];
   const ring = ringWidths[size];
   const dot = dotSizes[size];
