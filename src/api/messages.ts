@@ -29,8 +29,9 @@ export interface MessageRow {
 type MessageInsert = Database["public"]["Tables"]["messages"]["Insert"];
 
 const SELECT =
-  "id, channel_id, sender_id, body, client_temp_id, created_at, edited_at, deleted_at, deleted_by, " +
-  "sender:users!messages_sender_id_fkey(full_name, avatar_url)";
+  "id, channel_id, sender_id, body, attachment_url, attachment_type, reply_to_id, client_temp_id, created_at, edited_at, deleted_at, deleted_by, " +
+  "sender:users!messages_sender_id_fkey(full_name, avatar_url), " +
+  "reply_to:messages!messages_reply_to_id_fkey(id, body, sender_id, deleted_at, sender:users!messages_sender_id_fkey(full_name))";
 
 export async function getMessageHistory(channelId: string, before?: string, limit = 50): Promise<MessageRow[]> {
   let q = supabase.from("messages").select(SELECT).eq("channel_id", channelId).order("created_at", { ascending: false }).limit(limit);
@@ -69,10 +70,9 @@ export async function sendMessage(
     channel_id: channelId,
     client_temp_id: clientTempId,
     sender_id: senderId,
+    ...(options?.attachmentUrl && { attachment_url: options.attachmentUrl, attachment_type: options.attachmentType ?? "image" }),
+    ...(options?.replyToId && { reply_to_id: options.replyToId }),
   };
-  if (options?.attachmentUrl || options?.replyToId) {
-    console.warn("Attachments and replies are not supported by the current messages schema yet.");
-  }
 
   const { data, error } = await supabase.from("messages").insert(insert).select(SELECT).single();
   if (error) throw error;

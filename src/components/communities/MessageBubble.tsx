@@ -56,7 +56,7 @@ export default function MessageBubble({ message, showHeader, reactions, currentU
       )}
       <div className="pl-10">
         {/* Reply-to quote */}
-        {message.reply_to && !isDeleted && (
+        {message.reply_to_id && message.reply_to && !isDeleted && (
           <div className="mb-1 border-l-2 border-primary/40 pl-2 py-0.5 rounded-sm bg-muted/40">
             <p className="text-xs font-medium text-muted-foreground">{message.reply_to.sender?.full_name ?? "Member"}</p>
             <p className="text-xs text-muted-foreground truncate">
