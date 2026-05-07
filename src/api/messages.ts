@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import type { Database } from "@/integrations/supabase/types";
 
 export interface ReplyToPreview {
   id: string;
@@ -25,10 +26,11 @@ export interface MessageRow {
   sender?: { full_name: string; avatar_url: string | null };
 }
 
+type MessageInsert = Database["public"]["Tables"]["messages"]["Insert"];
+
 const SELECT =
-  "id, channel_id, sender_id, body, attachment_url, attachment_type, reply_to_id, client_temp_id, created_at, edited_at, deleted_at, deleted_by, " +
-  "sender:users!sender_id(full_name, avatar_url), " +
-  "reply_to:messages!reply_to_id(id, body, sender_id, deleted_at, sender:users!sender_id(full_name))";
+  "id, channel_id, sender_id, body, client_temp_id, created_at, edited_at, deleted_at, deleted_by, " +
+  "sender:users!messages_sender_id_fkey(full_name, avatar_url)";
 
 export async function getMessageHistory(channelId: string, before?: string, limit = 50): Promise<MessageRow[]> {
   let q = supabase.from("messages").select(SELECT).eq("channel_id", channelId).order("created_at", { ascending: false }).limit(limit);
@@ -57,17 +59,20 @@ export async function sendMessage(
   senderId: string,
   options?: SendOptions,
 ): Promise<MessageRow> {
-  const insert: Record<string, unknown> = {
+  const trimmedBody = body.trim();
+  if (!trimmedBody) {
+    throw new Error("Message body is required");
+  }
+
+  const insert: MessageInsert = {
+    body: trimmedBody,
     channel_id: channelId,
     client_temp_id: clientTempId,
     sender_id: senderId,
   };
-  if (body.trim()) insert.body = body.trim();
-  if (options?.attachmentUrl) {
-    insert.attachment_url = options.attachmentUrl;
-    insert.attachment_type = options.attachmentType ?? "image";
+  if (options?.attachmentUrl || options?.replyToId) {
+    console.warn("Attachments and replies are not supported by the current messages schema yet.");
   }
-  if (options?.replyToId) insert.reply_to_id = options.replyToId;
 
   const { data, error } = await supabase.from("messages").insert(insert).select(SELECT).single();
   if (error) throw error;
