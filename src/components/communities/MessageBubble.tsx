@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import Avatar from "@/components/Avatar";
 import MessageReactions from "./MessageReactions";
 import MessageActionSheet from "./MessageActionSheet";
+import VoiceMessageBubble from "./VoiceMessageBubble";
 import { toast } from "sonner";
 import { editMessage, softDeleteMessage } from "@/api/messages";
 import { toggleReaction, ReactionRow } from "@/api/reactions";
@@ -74,8 +75,12 @@ export default function MessageBubble({ message, showHeader, reactions, currentU
           </div>
         ) : (
           <>
+            {/* Voice attachment */}
+            {message.attachment_type === "voice" && message.attachment_url && (
+              <VoiceMessageBubble url={message.attachment_url} />
+            )}
             {/* Image attachment */}
-            {message.attachment_url && (
+            {message.attachment_type === "image" && message.attachment_url && (
               <img
                 src={message.attachment_url}
                 alt="attachment"

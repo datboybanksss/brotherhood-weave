@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, BellOff, Bell, Send, ImagePlus, X, Users } from "lucide-react";
+import VoiceRecorder from "@/components/communities/VoiceRecorder";
 import { getChannelBySlug, getChannelMemberCount } from "@/api/channels";
 import { useChannelMessages } from "@/hooks/useChannelMessages";
 import { useChannelMember } from "@/hooks/useChannelMember";
@@ -43,6 +44,7 @@ export default function ChannelView() {
   const [replyTo, setReplyTo] = useState<MessageRow | null>(null);
   const [pendingImage, setPendingImage] = useState<{ file: File; previewUrl: string } | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [showPill, setShowPill] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -146,6 +148,18 @@ export default function ChannelView() {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handleVoiceRecorded = async (blob: Blob, mimeType: string) => {
+    const ext = mimeType.includes("mp4") ? "m4a" : "webm";
+    const path = `voice/${user!.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("channel-attachments")
+      .upload(path, blob, { contentType: mimeType });
+    if (error) { toast.error("Voice upload failed"); return; }
+    const { data: urlData } = supabase.storage.from("channel-attachments").getPublicUrl(path);
+    await send({ attachmentUrl: urlData.publicUrl, attachmentType: "voice" });
+    requestAnimationFrame(() => scrollToBottom());
   };
 
   const handleTyping = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -280,37 +294,43 @@ export default function ChannelView() {
         <div className="p-2">
           {canPost ? (
             <div className="flex items-end gap-2">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageSelect}
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="p-2 rounded-full hover:bg-accent text-muted-foreground shrink-0"
-                aria-label="Attach image"
-                disabled={uploading}
-              >
-                <ImagePlus className="h-5 w-5" />
-              </button>
-              <textarea
-                value={draft}
-                onChange={handleTyping}
-                onKeyDown={handleKey}
-                placeholder={`Message #${channel.name}`}
-                rows={1}
-                className="flex-1 resize-none bg-muted border border-input rounded-lg px-3 py-2 text-sm max-h-32 focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-              <button
-                onClick={handleSend}
-                disabled={(!draft.trim() && !pendingImage) || uploading}
-                className="p-2 rounded-full bg-primary text-primary-foreground disabled:opacity-40 shrink-0"
-                aria-label="Send"
-              >
-                <Send className="h-4 w-4" />
-              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+              {!isRecording && (
+                <>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-2 rounded-full hover:bg-accent text-muted-foreground shrink-0"
+                    aria-label="Attach image"
+                    disabled={uploading}
+                  >
+                    <ImagePlus className="h-5 w-5" />
+                  </button>
+                  <textarea
+                    value={draft}
+                    onChange={handleTyping}
+                    onKeyDown={handleKey}
+                    placeholder={`Message #${channel.name}`}
+                    rows={1}
+                    className="flex-1 resize-none bg-muted border border-input rounded-lg px-3 py-2 text-sm max-h-32 focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                </>
+              )}
+              {!isRecording && (draft.trim() || pendingImage) ? (
+                <button
+                  onClick={handleSend}
+                  disabled={(!draft.trim() && !pendingImage) || uploading}
+                  className="p-2 rounded-full bg-primary text-primary-foreground disabled:opacity-40 shrink-0"
+                  aria-label="Send"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              ) : (
+                <VoiceRecorder
+                  onRecorded={handleVoiceRecorded}
+                  onRecordingChange={setIsRecording}
+                  disabled={uploading}
+                />
+              )}
             </div>
           ) : (
             <p className="text-xs text-center text-muted-foreground py-2">

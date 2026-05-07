@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ImagePlus, Send, X } from "lucide-react";
+import VoiceRecorder from "@/components/communities/VoiceRecorder";
 import { formatDistanceToNow, isSameDay } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -37,6 +38,7 @@ export default function ConversationView() {
   const [replyTo, setReplyTo] = useState<DirectMessageRow | null>(null);
   const [pendingImage, setPendingImage] = useState<{ file: File; previewUrl: string } | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [loadingOlder, setLoadingOlder] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -114,6 +116,18 @@ export default function ConversationView() {
 
   const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+  };
+
+  const handleVoiceRecorded = async (blob: Blob, mimeType: string) => {
+    const ext = mimeType.includes("mp4") ? "m4a" : "webm";
+    const path = `dm/voice/${user!.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("channel-attachments")
+      .upload(path, blob, { contentType: mimeType });
+    if (error) { toast.error("Voice upload failed"); return; }
+    const { data: urlData } = supabase.storage.from("channel-attachments").getPublicUrl(path);
+    await send({ attachmentUrl: urlData.publicUrl, attachmentType: "voice" });
+    requestAnimationFrame(() => scrollToBottom());
   };
 
   const groupedByDay = useMemo(() => {
@@ -228,30 +242,42 @@ export default function ConversationView() {
         <div className="p-2">
           <div className="flex items-end gap-2">
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="p-2 rounded-full hover:bg-accent text-muted-foreground shrink-0"
-              aria-label="Attach image"
-            >
-              <ImagePlus className="h-5 w-5" />
-            </button>
-            <textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={handleKey}
-              placeholder={otherUser ? `Message ${otherUser.full_name.split(" ")[0]}…` : "Message…"}
-              rows={1}
-              className="flex-1 resize-none bg-muted border border-input rounded-lg px-3 py-2 text-sm max-h-32 focus:outline-none focus:ring-1 focus:ring-ring"
-            />
-            <button
-              onClick={handleSend}
-              disabled={(!draft.trim() && !pendingImage) || uploading}
-              className="p-2 rounded-full bg-primary text-primary-foreground disabled:opacity-40 shrink-0"
-              aria-label="Send"
-            >
-              <Send className="h-4 w-4" />
-            </button>
+            {!isRecording && (
+              <>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="p-2 rounded-full hover:bg-accent text-muted-foreground shrink-0"
+                  aria-label="Attach image"
+                >
+                  <ImagePlus className="h-5 w-5" />
+                </button>
+                <textarea
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={handleKey}
+                  placeholder={otherUser ? `Message ${otherUser.full_name.split(" ")[0]}…` : "Message…"}
+                  rows={1}
+                  className="flex-1 resize-none bg-muted border border-input rounded-lg px-3 py-2 text-sm max-h-32 focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+              </>
+            )}
+            {!isRecording && (draft.trim() || pendingImage) ? (
+              <button
+                onClick={handleSend}
+                disabled={(!draft.trim() && !pendingImage) || uploading}
+                className="p-2 rounded-full bg-primary text-primary-foreground disabled:opacity-40 shrink-0"
+                aria-label="Send"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            ) : (
+              <VoiceRecorder
+                onRecorded={handleVoiceRecorded}
+                onRecordingChange={setIsRecording}
+                disabled={uploading}
+              />
+            )}
           </div>
         </div>
       </div>
