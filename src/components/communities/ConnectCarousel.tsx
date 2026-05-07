@@ -28,7 +28,7 @@ function Card({ m }: { m: CarouselMember }) {
           loading="lazy"
         />
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-brand-royal text-white font-serif text-3xl">
+        <div className="absolute inset-0 flex items-center justify-center bg-muted text-muted-foreground font-sans font-semibold text-2xl">
           {initials}
         </div>
       )}
@@ -57,13 +57,6 @@ export default function ConnectCarousel() {
   return (
     <div className="space-y-3">
       <p className="text-xs uppercase tracking-wide text-text-muted font-medium">Connect with a brother</p>
-      {/* TEMP DEBUG — remove once verified */}
-      <div className="text-[10px] font-mono bg-yellow-100 text-black p-2 rounded space-y-0.5">
-        <div>debug: {members.length} members from query</div>
-        {members.map((m) => (
-          <div key={`dbg-${m.id}`}>• {m.full_name} — {m.id}</div>
-        ))}
-      </div>
       <div className="overflow-hidden -mx-4 px-4">
         {shouldScroll ? (
           <div
