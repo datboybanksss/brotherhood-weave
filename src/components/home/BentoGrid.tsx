@@ -73,6 +73,10 @@ export function BentoTile({
 
   const onActivate = () => {
     if (to) {
+      if (/^https?:\/\//i.test(to)) {
+        window.location.assign(to);
+        return;
+      }
       const [path, hash] = to.split("#");
       navigate(path + (hash ? `#${hash}` : ""));
     }

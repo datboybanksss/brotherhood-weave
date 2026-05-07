@@ -11,6 +11,7 @@ import DepartmentsCard from "@/components/home/DepartmentsCard";
 import CollectiveChallengeCard from "@/components/home/CollectiveChallengeCard";
 import FitnessHubCard from "@/components/home/FitnessHubCard";
 import BrotherhoodCard from "@/components/home/BrotherhoodCard";
+import BuyMerchandiseCard from "@/components/home/BuyMerchandiseCard";
 import ArchivesCard from "@/components/home/ArchivesCard";
 import { BentoGrid, BentoTile } from "@/components/home/BentoGrid";
 import OnboardingModal from "@/components/onboarding/OnboardingModal";
@@ -79,9 +80,20 @@ export default function Home() {
           variant="stat"
           to="/brotherhood"
           ariaLabel="Open brotherhood"
-          className="bg-gradient-to-b from-brand-royal-tint to-white"
+          className="bg-gradient-to-b from-brand-royal-tint to-white p-3 md:p-5"
         >
           <BrotherhoodCard />
+        </BentoTile>
+
+        <BentoTile
+          colBase={1}
+          colMd={2}
+          variant="stat"
+          to="https://familyties.shop"
+          ariaLabel="Buy merchandise"
+          className="md:hidden p-3 md:p-5"
+        >
+          <BuyMerchandiseCard />
         </BentoTile>
 
         <BentoTile
