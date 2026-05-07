@@ -1,13 +1,30 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Users } from "lucide-react";
+import { Users, MessageCircle } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import { useCurrentPeerPartner } from "@/hooks/useCurrentPeerPartner";
+import { getOrCreateConversation } from "@/api/direct-messages";
+import { toast } from "sonner";
 
 export default function PulsePeerCard() {
   const { data } = useCurrentPeerPartner();
   const partners = data?.partners ?? [];
   const weekEnd = data?.weekEnd;
+  const nav = useNavigate();
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  const handleMessage = async (partnerId: string) => {
+    setLoadingId(partnerId);
+    try {
+      const convId = await getOrCreateConversation(partnerId);
+      nav(`/messages/${convId}`);
+    } catch {
+      toast.error("Could not open conversation");
+    } finally {
+      setLoadingId(null);
+    }
+  };
 
   return (
     <div className="rounded-2xl border border-stroke-hairline bg-card p-4 space-y-3">
@@ -19,21 +36,30 @@ export default function PulsePeerCard() {
         <p className="text-sm text-text-muted">Pairings run every Sunday — check back then.</p>
       ) : (
         <>
-          <div className="flex gap-4">
+          <div className="flex flex-col gap-3">
             {partners.map((p) => (
-              <Link
-                key={p.id}
-                to={`/member/${p.id}`}
-                className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
-              >
-                <Avatar userId={p.id} size="md" />
-                <div className="min-w-0">
-                  <p className="font-semibold text-sm text-foreground truncate">{p.full_name.split(" ")[0]}</p>
-                  {p.primary_department && (
-                    <p className="text-xs text-text-muted truncate">{p.primary_department}</p>
-                  )}
-                </div>
-              </Link>
+              <div key={p.id} className="flex items-center gap-3">
+                <Link
+                  to={`/member/${p.id}`}
+                  className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+                >
+                  <Avatar userId={p.id} size="md" showStatus />
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm text-foreground truncate">{p.full_name.split(" ")[0]}</p>
+                    {p.primary_department && (
+                      <p className="text-xs text-text-muted truncate">{p.primary_department}</p>
+                    )}
+                  </div>
+                </Link>
+                <button
+                  onClick={() => handleMessage(p.id)}
+                  disabled={loadingId === p.id}
+                  className="p-2 rounded-full hover:bg-accent text-brand-royal disabled:opacity-40 shrink-0"
+                  aria-label={`Message ${p.full_name.split(" ")[0]}`}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                </button>
+              </div>
             ))}
           </div>
           {weekEnd && (
