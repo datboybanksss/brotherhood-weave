@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 export interface CarouselMember {
   id: string;
   full_name: string;
-  featured_url: string;
+  featured_url: string | null;
   department: string | null;
   created_at?: string | null;
 }
