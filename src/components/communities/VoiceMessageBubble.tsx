@@ -63,7 +63,7 @@ export default function VoiceMessageBubble({ url }: { url: string }) {
         >
           <div
             className="h-full bg-primary rounded-full"
-            style={{ width: `${progress}%`, transition: "width 0.1s linear" }}
+            style={{ width: `${progress}%`, transition: playing ? "width 0.25s linear" : "width 0.15s ease-out" }}
           />
         </div>
         <p className="text-[10px] text-muted-foreground tabular-nums">
