@@ -57,6 +57,13 @@ export default function ConnectCarousel() {
   return (
     <div className="space-y-3">
       <p className="text-xs uppercase tracking-wide text-text-muted font-medium">Connect with a brother</p>
+      {/* TEMP DEBUG — remove once verified */}
+      <div className="text-[10px] font-mono bg-yellow-100 text-black p-2 rounded space-y-0.5">
+        <div>debug: {members.length} members from query</div>
+        {members.map((m) => (
+          <div key={`dbg-${m.id}`}>• {m.full_name} — {m.id}</div>
+        ))}
+      </div>
       <div className="overflow-hidden -mx-4 px-4">
         {shouldScroll ? (
           <div
