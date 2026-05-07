@@ -39,7 +39,7 @@ export default function ConnectCarousel() {
   // Newest 5 members. As soon as a 6th joins, oldest drops out.
   const visible = members.slice(0, MAX_CARDS);
   const trackWidth = visible.length * (CARD_W + GAP);
-  const shouldScroll = visible.length >= 3;
+  const shouldScroll = visible.length >= 2;
 
   return (
     <div className="space-y-3">
