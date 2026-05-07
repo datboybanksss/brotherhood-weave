@@ -24,7 +24,7 @@ export const founderCards: Record<string, FounderCardConfig> = {
   },
   'Kgosi Banks': {
     cardImageUrl: kgosiBanksCard,
-    avatarScale: 1.05,
+    avatarScale: 1.4,
     avatarObjectPosition: 'center 80%',
     avatarTransformOrigin: '50% 65%',
   },
