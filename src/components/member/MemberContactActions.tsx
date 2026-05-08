@@ -1,5 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { Globe, Instagram, Linkedin, Mail, Music2, Twitter, Youtube } from "lucide-react";
+
+function GmailIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path d="M12 12.713 1.5 5.25v12A1.75 1.75 0 0 0 3.25 19h3.5V11.5L12 15.25l5.25-3.75V19h3.5A1.75 1.75 0 0 0 22.5 17.25v-12L12 12.713Z" />
+      <path d="M22.5 5.25A1.75 1.75 0 0 0 20.75 3.5h-.5L12 9.5 3.75 3.5h-.5A1.75 1.75 0 0 0 1.5 5.25l10.5 7.463L22.5 5.25Z" opacity=".85" />
+    </svg>
+  );
+}
 import { getMemberContact } from "@/api/contact";
 import { getMemberSocialLinks } from "@/api/social-links";
 import type { PublicMember } from "@/api/members";
@@ -66,7 +75,7 @@ export default function MemberContactActions({ member }: Props) {
     contact?.email ? {
       href: `mailto:${contact.email}`,
       label: "Email",
-      icon: Mail,
+      icon: GmailIcon,
     } : null,
     ...(socialLinks ?? []).map((link) => ({
       href: link.url,
