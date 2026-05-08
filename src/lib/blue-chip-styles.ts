@@ -45,9 +45,9 @@ export function blueChipStyle(key: string, selected: boolean): CSSProperties {
     return { backgroundColor: tone.hex, borderColor: tone.hex, color: "#FFFFFF" };
   }
   return {
-    backgroundColor: `rgba(${r},${g},${b},0.14)`,
-    borderColor: `rgba(${r},${g},${b},0.22)`,
-    color: tone.hex,
+    backgroundColor: `rgba(${r},${g},${b},0.75)`,
+    borderColor: `rgba(${r},${g},${b},0.85)`,
+    color: "#FFFFFF",
   };
 }
 
