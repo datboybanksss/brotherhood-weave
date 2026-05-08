@@ -34,18 +34,33 @@ const socialLabels = {
 } satisfies Record<SocialPlatform, string>;
 
 export default function MemberContactActions({ member }: Props) {
-  const { data: contact } = useQuery({
+  const { data: contact, isLoading: contactLoading } = useQuery({
     queryKey: ["memberContact", member.id],
     queryFn: () => getMemberContact(member.id),
     enabled: member.email_visible === true,
     staleTime: 5 * 60_000,
   });
 
-  const { data: socialLinks } = useQuery({
+  const { data: socialLinks, isLoading: socialLinksLoading } = useQuery({
     queryKey: ["memberSocialLinks", member.id],
     queryFn: () => getMemberSocialLinks(member.id),
     staleTime: 5 * 60_000,
   });
+
+  const loading = socialLinksLoading || (member.email_visible === true && contactLoading);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-10 items-center justify-center gap-2" aria-hidden>
+        {Array.from({ length: member.email_visible ? 3 : 2 }).map((_, index) => (
+          <span
+            key={index}
+            className="h-10 w-10 rounded-full border border-brand-royal/10 bg-brand-royal-tint/50"
+          />
+        ))}
+      </div>
+    );
+  }
 
   const actions: ContactAction[] = [
     contact?.email ? {
