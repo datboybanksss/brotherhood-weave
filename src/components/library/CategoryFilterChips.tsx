@@ -1,4 +1,4 @@
-import { blueChipClassName } from "@/lib/blue-chip-styles";
+import { blueChipClassName, blueChipStyle } from "@/lib/blue-chip-styles";
 
 type Category = "money" | "career" | "relationships" | "health" | "mindset" | "craft";
 
@@ -22,6 +22,7 @@ export default function CategoryFilterChips({ selected, onSelect }: Props) {
       <button
         onClick={() => onSelect(undefined)}
         className={blueChipClassName("all", !selected)}
+        style={blueChipStyle("all", !selected)}
       >
         All
       </button>
@@ -30,6 +31,7 @@ export default function CategoryFilterChips({ selected, onSelect }: Props) {
           key={c.value}
           onClick={() => onSelect(selected === c.value ? undefined : c.value)}
           className={blueChipClassName(c.value, selected === c.value)}
+          style={blueChipStyle(c.value, selected === c.value)}
         >
           {c.label}
         </button>

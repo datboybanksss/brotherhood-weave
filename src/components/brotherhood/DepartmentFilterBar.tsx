@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { blueChipClassName } from "@/lib/blue-chip-styles";
+import { blueChipClassName, blueChipStyle } from "@/lib/blue-chip-styles";
 
 interface DepartmentFilterBarProps {
   selected: string | null;
@@ -23,6 +23,7 @@ export default function DepartmentFilterBar({ selected, onSelect }: DepartmentFi
       <button
         onClick={() => onSelect(null)}
         className={blueChipClassName("all", !selected)}
+        style={blueChipStyle("all", !selected)}
       >
         All
       </button>
@@ -31,6 +32,7 @@ export default function DepartmentFilterBar({ selected, onSelect }: DepartmentFi
           key={dept.id}
           onClick={() => onSelect(selected === dept.id ? null : dept.id)}
           className={blueChipClassName(dept.id, selected === dept.id)}
+          style={blueChipStyle(dept.id, selected === dept.id)}
         >
           {dept.name}
         </button>

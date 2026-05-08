@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import type { CSSProperties } from "react";
 
 type ChipTone = {
   /** Base shade for this chip. */
@@ -34,21 +35,27 @@ function toneFor(key: string) {
   return TONES[hashKey(key) % TONES.length];
 }
 
-export function blueChipClassName(key: string, selected: boolean) {
+const BASE_CHIP_CLASS =
+  "shrink-0 min-h-[36px] rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-royal";
+
+export function blueChipStyle(key: string, selected: boolean): CSSProperties {
   const tone = toneFor(key);
-  const rgb = hexToRgb(tone.hex);
-
-  const base =
-    "shrink-0 min-h-[36px] rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-royal";
-
+  const { r, g, b } = hexToRgb(tone.hex);
   if (selected) {
-    return cn(base, `bg-[${tone.hex}]`, `border-[${tone.hex}]`, "text-white");
+    return { backgroundColor: tone.hex, borderColor: tone.hex, color: "#FFFFFF" };
   }
+  return {
+    backgroundColor: `rgba(${r},${g},${b},0.14)`,
+    borderColor: `rgba(${r},${g},${b},0.22)`,
+    color: tone.hex,
+  };
+}
 
-  // Unselected: subtle tint background with same-hue text for cohesion.
-  const bg = `bg-[rgba(${rgb.r},${rgb.g},${rgb.b},0.14)]`;
-  const border = `border-[rgba(${rgb.r},${rgb.g},${rgb.b},0.22)]`;
-  const text = `text-[${tone.hex}]`;
-  return cn(base, bg, border, text, "hover:brightness-[0.98]");
+/**
+ * Backwards-compatible helper: returns only the static class string.
+ * Pair with `blueChipStyle(key, selected)` on the same element for colors.
+ */
+export function blueChipClassName(_key: string, _selected: boolean) {
+  return cn(BASE_CHIP_CLASS, "hover:brightness-[0.98]");
 }
 
