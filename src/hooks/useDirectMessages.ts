@@ -24,7 +24,7 @@ export interface DMPayload {
 }
 
 export function useDirectMessages(conversationId: string | undefined) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [messages, setMessages] = useState<OptimisticDM[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
@@ -32,14 +32,35 @@ export function useDirectMessages(conversationId: string | undefined) {
   const rtChannel = useRef<RealtimeChannel | null>(null);
 
   const loadInitial = useCallback(async () => {
-    if (!conversationId) return;
+    if (!conversationId) {
+      setMessages([]);
+      setHasMore(true);
+      setLoading(false);
+      return;
+    }
+    if (authLoading) return;
+    if (!user?.id) {
+      setMessages([]);
+      setHasMore(false);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
-    const rows = await getDirectMessages(conversationId);
-    setMessages(rows);
-    setHasMore(rows.length === 50);
-    setLoading(false);
-    markConversationRead(conversationId).catch(() => {});
-  }, [conversationId]);
+    try {
+      const rows = await getDirectMessages(conversationId);
+      setMessages(rows);
+      setHasMore(rows.length === 50);
+      markConversationRead(conversationId).catch(() => {});
+    } catch (error) {
+      console.error("Failed to load direct messages", error);
+      toast.error("Could not load messages right now.");
+      setMessages([]);
+      setHasMore(false);
+    } finally {
+      setLoading(false);
+    }
+  }, [authLoading, conversationId, user?.id]);
 
   const loadOlder = useCallback(async () => {
     if (!conversationId || messages.length === 0) return;
@@ -52,7 +73,7 @@ export function useDirectMessages(conversationId: string | undefined) {
   useEffect(() => { loadInitial(); }, [loadInitial]);
 
   useEffect(() => {
-    if (!conversationId) return;
+    if (!conversationId || authLoading || !user?.id) return;
     const ch = supabase.channel(`dm:${conversationId}:${Math.random().toString(36).slice(2)}`);
     rtChannel.current = ch;
 
@@ -88,7 +109,7 @@ export function useDirectMessages(conversationId: string | undefined) {
       supabase.removeChannel(ch);
       rtChannel.current = null;
     };
-  }, [conversationId]);
+  }, [authLoading, conversationId, user?.id]);
 
   const markRead = useCallback(() => {
     if (conversationId) markConversationRead(conversationId).catch(() => {});
