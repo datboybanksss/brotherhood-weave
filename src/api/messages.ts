@@ -30,8 +30,8 @@ type MessageInsert = Database["public"]["Tables"]["messages"]["Insert"];
 
 const SELECT =
   "id, channel_id, sender_id, body, attachment_url, attachment_type, reply_to_id, client_temp_id, created_at, edited_at, deleted_at, deleted_by, " +
-  "sender:users!messages_sender_id_fkey(full_name, avatar_url), " +
-  "reply_to:messages!messages_reply_to_id_fkey(id, body, sender_id, deleted_at, sender:users!messages_sender_id_fkey(full_name))";
+  "sender:users!sender_id(full_name, avatar_url), " +
+  "reply_to:messages!reply_to_id(id, body, sender_id, deleted_at, sender:users!sender_id(full_name))";
 
 export async function getMessageHistory(channelId: string, before?: string, limit = 50): Promise<MessageRow[]> {
   let q = supabase.from("messages").select(SELECT).eq("channel_id", channelId).order("created_at", { ascending: false }).limit(limit);

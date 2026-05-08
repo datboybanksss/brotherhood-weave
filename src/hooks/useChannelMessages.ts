@@ -19,7 +19,7 @@ export interface SendPayload {
 }
 
 export function useChannelMessages(channelId: string | undefined) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [messages, setMessages] = useState<OptimisticMessage[]>([]);
   const [reactions, setReactions] = useState<ReactionRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +30,22 @@ export function useChannelMessages(channelId: string | undefined) {
   const typingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const loadInitial = useCallback(async () => {
-    if (!channelId) return;
+    if (!channelId) {
+      setMessages([]);
+      setReactions([]);
+      setHasMore(true);
+      setLoading(false);
+      return;
+    }
+    if (authLoading) return;
+    if (!user?.id) {
+      setMessages([]);
+      setReactions([]);
+      setHasMore(false);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const rows = await getMessageHistory(channelId);
@@ -47,7 +62,7 @@ export function useChannelMessages(channelId: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }, [channelId]);
+  }, [authLoading, channelId, user?.id]);
 
   const loadOlder = useCallback(async () => {
     if (!channelId || messages.length === 0) return;
@@ -69,7 +84,7 @@ export function useChannelMessages(channelId: string | undefined) {
   }, [loadInitial]);
 
   useEffect(() => {
-    if (!channelId) return;
+    if (!channelId || authLoading || !user?.id) return;
     const ch = supabase.channel(`messages:${channelId}:${Math.random().toString(36).slice(2)}`);
     rtChannel.current = ch;
 
@@ -123,7 +138,7 @@ export function useChannelMessages(channelId: string | undefined) {
       typingTimers.current.clear();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channelId, user?.id]);
+  }, [authLoading, channelId, user?.id]);
 
   const broadcastTyping = useCallback(
     (name: string) => {
