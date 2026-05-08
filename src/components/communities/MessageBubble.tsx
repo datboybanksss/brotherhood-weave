@@ -89,6 +89,31 @@ export default function MessageBubble({ message, showHeader, reactions, currentU
                 onClick={() => window.open(message.attachment_url!, "_blank")}
               />
             )}
+            {/* Video attachment */}
+            {message.attachment_type === "video" && message.attachment_url && (
+              <video
+                src={message.attachment_url}
+                controls
+                className="max-w-xs rounded-lg mb-1"
+                style={{ maxHeight: 280 }}
+              />
+            )}
+            {/* File attachment */}
+            {message.attachment_type === "file" && message.attachment_url && (() => {
+              const raw = decodeURIComponent(message.attachment_url.split("/").pop() ?? "file");
+              const name = raw.replace(/^\d+_/, "") || "file";
+              return (
+                <a
+                  href={message.attachment_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-2 mb-1 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-sm font-medium text-foreground max-w-xs"
+                >
+                  <span className="text-base shrink-0">📄</span>
+                  <span className="truncate">{name}</span>
+                </a>
+              );
+            })()}
             {/* Text body */}
             {message.body && (
               <p

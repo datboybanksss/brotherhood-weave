@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, BellOff, Bell, Send, ImagePlus, X, Users } from "lucide-react";
+import { ArrowLeft, BellOff, Bell, Send, X, Users } from "lucide-react";
 import VoiceRecorder from "@/components/communities/VoiceRecorder";
+import AttachmentPicker from "@/components/communities/AttachmentPicker";
 import { getChannelBySlug, getChannelMemberCount } from "@/api/channels";
 import { useChannelMessages } from "@/hooks/useChannelMessages";
 import { useChannelMember } from "@/hooks/useChannelMember";
@@ -18,6 +19,15 @@ import type { OptimisticMessage } from "@/hooks/useChannelMessages";
 import type { MessageRow } from "@/api/messages";
 
 const GROUP_WINDOW_MS = 5 * 60_000;
+
+type PendingMedia = { file: File; previewUrl: string };
+type PendingFile  = { file: File };
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 export default function ChannelView() {
   const { slug } = useParams<{ slug: string }>();
@@ -42,14 +52,15 @@ export default function ChannelView() {
 
   const [draft, setDraft] = useState("");
   const [replyTo, setReplyTo] = useState<MessageRow | null>(null);
-  const [pendingImage, setPendingImage] = useState<{ file: File; previewUrl: string } | null>(null);
+  const [pendingMedia, setPendingMedia] = useState<PendingMedia | null>(null);
+  const [pendingFile, setPendingFile] = useState<PendingFile | null>(null);
   const [uploading, setUploading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [showPill, setShowPill] = useState(false);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const lastCountRef = useRef(0);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -71,12 +82,7 @@ export default function ChannelView() {
     if (messages.length > lastCountRef.current) {
       const el = scrollRef.current;
       const nearBottom = el ? el.scrollHeight - el.scrollTop - el.clientHeight < 120 : true;
-      if (nearBottom) {
-        scrollToBottom();
-        markRead();
-      } else {
-        setShowPill(true);
-      }
+      if (nearBottom) { scrollToBottom(); markRead(); } else setShowPill(true);
       lastCountRef.current = messages.length;
     }
   }, [messages.length, markRead]);
@@ -84,57 +90,76 @@ export default function ChannelView() {
   const handleScroll = useCallback(async () => {
     const el = scrollRef.current;
     if (!el) return;
-    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
-    if (nearBottom) {
-      setShowPill(false);
-      markRead();
-    }
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 120) { setShowPill(false); markRead(); }
     if (el.scrollTop < 80 && hasMore && !loadingOlder && !loading) {
       const prevHeight = el.scrollHeight;
       setLoadingOlder(true);
       await loadOlder();
       setLoadingOlder(false);
-      // Maintain scroll position after prepending older messages
-      requestAnimationFrame(() => {
-        el.scrollTop = el.scrollHeight - prevHeight;
-      });
+      requestAnimationFrame(() => { el.scrollTop = el.scrollHeight - prevHeight; });
     }
   }, [hasMore, loadingOlder, loading, loadOlder, markRead]);
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) { toast.error("Only images are supported"); return; }
-    if (file.size > 10 * 1024 * 1024) { toast.error("Image must be under 10 MB"); return; }
-    const previewUrl = URL.createObjectURL(file);
-    setPendingImage({ file, previewUrl });
-    e.target.value = "";
+  const handleMediaSelect = (file: File) => {
+    const isVideo = file.type.startsWith("video/");
+    const maxMb = isVideo ? 100 : 10;
+    if (file.size > maxMb * 1024 * 1024) { toast.error(`File must be under ${maxMb} MB`); return; }
+    setPendingFile(null);
+    setPendingMedia({ file, previewUrl: URL.createObjectURL(file) });
+  };
+
+  const handleFileSelect = (file: File) => {
+    if (file.size > 25 * 1024 * 1024) { toast.error("File must be under 25 MB"); return; }
+    setPendingMedia(null);
+    setPendingFile({ file });
+  };
+
+  const clearPendingMedia = () => {
+    if (pendingMedia) URL.revokeObjectURL(pendingMedia.previewUrl);
+    setPendingMedia(null);
   };
 
   const handleSend = async () => {
     if (!canPost) return;
     const body = draft.trim();
-    if (!body && !pendingImage) return;
+    if (!body && !pendingMedia && !pendingFile) return;
 
     let attachmentUrl: string | undefined;
-    if (pendingImage) {
+    let attachmentType: string | undefined;
+
+    if (pendingMedia) {
       setUploading(true);
-      const ext = pendingImage.file.name.split(".").pop() ?? "jpg";
-      const path = `${user!.id}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("channel-attachments").upload(path, pendingImage.file);
+      const isVideo = pendingMedia.file.type.startsWith("video/");
+      const ext = pendingMedia.file.name.split(".").pop() ?? (isVideo ? "mp4" : "jpg");
+      const path = isVideo
+        ? `video/${user!.id}/${Date.now()}.${ext}`
+        : `${user!.id}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("channel-attachments").upload(path, pendingMedia.file);
       setUploading(false);
-      if (upErr) { toast.error("Image upload failed"); return; }
+      if (error) { toast.error("Upload failed"); return; }
       const { data: urlData } = supabase.storage.from("channel-attachments").getPublicUrl(path);
       attachmentUrl = urlData.publicUrl;
-      URL.revokeObjectURL(pendingImage.previewUrl);
-      setPendingImage(null);
+      attachmentType = isVideo ? "video" : "image";
+      URL.revokeObjectURL(pendingMedia.previewUrl);
+      setPendingMedia(null);
+    } else if (pendingFile) {
+      setUploading(true);
+      const safeName = pendingFile.file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `files/${user!.id}/${Date.now()}_${safeName}`;
+      const { error } = await supabase.storage.from("channel-attachments").upload(path, pendingFile.file);
+      setUploading(false);
+      if (error) { toast.error("File upload failed"); return; }
+      const { data: urlData } = supabase.storage.from("channel-attachments").getPublicUrl(path);
+      attachmentUrl = urlData.publicUrl;
+      attachmentType = "file";
+      setPendingFile(null);
     }
 
     setDraft("");
     const payload = {
       body,
       attachmentUrl,
-      attachmentType: attachmentUrl ? "image" : undefined,
+      attachmentType,
       replyToId: replyTo?.id,
       replyToPreview: replyTo ?? undefined,
     };
@@ -144,18 +169,13 @@ export default function ChannelView() {
   };
 
   const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
   const handleVoiceRecorded = async (blob: Blob, mimeType: string) => {
     const ext = mimeType.includes("mp4") ? "m4a" : "webm";
     const path = `voice/${user!.id}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage
-      .from("channel-attachments")
-      .upload(path, blob, { contentType: mimeType });
+    const { error } = await supabase.storage.from("channel-attachments").upload(path, blob, { contentType: mimeType });
     if (error) { toast.error("Voice upload failed"); return; }
     const { data: urlData } = supabase.storage.from("channel-attachments").getPublicUrl(path);
     await send({ attachmentUrl: urlData.publicUrl, attachmentType: "voice" });
@@ -171,7 +191,6 @@ export default function ChannelView() {
     }
   };
 
-  // Group messages by day, then into sender groups within 5min
   const groupedByDay = useMemo(() => {
     const days: { date: string; groups: OptimisticMessage[][] }[] = [];
     for (const m of messages) {
@@ -182,17 +201,16 @@ export default function ChannelView() {
       }
       const lastGroup = last.groups[last.groups.length - 1];
       const prev = lastGroup[lastGroup.length - 1];
-      const sameSender = prev.sender_id === m.sender_id;
-      const within = new Date(m.created_at).getTime() - new Date(prev.created_at).getTime() < GROUP_WINDOW_MS;
-      if (sameSender && within) lastGroup.push(m);
-      else last.groups.push([m]);
+      if (prev.sender_id === m.sender_id && new Date(m.created_at).getTime() - new Date(prev.created_at).getTime() < GROUP_WINDOW_MS) {
+        lastGroup.push(m);
+      } else {
+        last.groups.push([m]);
+      }
     }
     return days;
   }, [messages]);
 
-  if (chLoading || !channel) {
-    return <div className="p-4 text-sm text-muted-foreground">Loading…</div>;
-  }
+  if (chLoading || !channel) return <div className="p-4 text-sm text-muted-foreground">Loading…</div>;
 
   const muted = !!membership?.is_muted;
 
@@ -210,17 +228,12 @@ export default function ChannelView() {
             {memberCount != null && (
               <span className="flex items-center gap-0.5 shrink-0">
                 {channel.description && <span>·</span>}
-                <Users className="h-3 w-3" />
-                {memberCount}
+                <Users className="h-3 w-3" />{memberCount}
               </span>
             )}
           </div>
         </div>
-        <button
-          onClick={() => toggleMute(!muted)}
-          className="p-2 rounded-full hover:bg-accent"
-          aria-label={muted ? "Unmute" : "Mute"}
-        >
+        <button onClick={() => toggleMute(!muted)} className="p-2 rounded-full hover:bg-accent" aria-label={muted ? "Unmute" : "Mute"}>
           {muted ? <BellOff className="h-5 w-5" /> : <Bell className="h-5 w-5" />}
         </button>
       </header>
@@ -228,13 +241,9 @@ export default function ChannelView() {
       {/* Message list */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto relative" onScroll={handleScroll}>
         {loadingOlder && <p className="text-xs text-center text-muted-foreground py-2">Loading…</p>}
-        {!loadingOlder && hasMore && messages.length > 0 && (
-          <p className="text-xs text-center text-muted-foreground py-2">Scroll up for more</p>
-        )}
+        {!loadingOlder && hasMore && messages.length > 0 && <p className="text-xs text-center text-muted-foreground py-2">Scroll up for more</p>}
         {loading && <p className="text-sm text-muted-foreground p-4">Loading messages…</p>}
-        {!loading && messages.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-8">No messages yet — be the first to say hi.</p>
-        )}
+        {!loading && messages.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">No messages yet — be the first to say hi.</p>}
         {groupedByDay.map((day) => (
           <div key={day.date}>
             <DaySeparator date={day.date} />
@@ -245,7 +254,7 @@ export default function ChannelView() {
                 reactions={reactions}
                 currentUserId={user?.id ?? ""}
                 isAdmin={isAdmin}
-                onReply={(m) => { setReplyTo(m); }}
+                onReply={(m) => setReplyTo(m)}
               />
             ))}
           </div>
@@ -256,55 +265,54 @@ export default function ChannelView() {
 
       {/* Composer */}
       <div className="border-t border-border bg-background">
-        {/* Typing indicator */}
         {typingUsers.length > 0 && (
           <p className="text-xs text-muted-foreground px-3 pt-1">
-            {typingUsers.length === 1
-              ? `${typingUsers[0]} is typing…`
-              : `${typingUsers.slice(0, 2).join(", ")} are typing…`}
+            {typingUsers.length === 1 ? `${typingUsers[0]} is typing…` : `${typingUsers.slice(0, 2).join(", ")} are typing…`}
           </p>
         )}
 
-        {/* Reply preview bar */}
         {replyTo && (
           <div className="flex items-center gap-2 px-3 py-1.5 border-b border-border bg-muted/30">
             <div className="flex-1 min-w-0 border-l-2 border-primary pl-2">
               <p className="text-xs font-medium text-muted-foreground">{(replyTo as any).sender?.full_name ?? "Member"}</p>
-              <p className="text-xs text-muted-foreground truncate">{replyTo.body ?? "📎 Image"}</p>
+              <p className="text-xs text-muted-foreground truncate">{replyTo.body ?? "📎 Attachment"}</p>
             </div>
-            <button onClick={() => setReplyTo(null)} className="p-1 rounded hover:bg-accent">
-              <X className="h-3.5 w-3.5 text-muted-foreground" />
+            <button onClick={() => setReplyTo(null)} className="p-1 rounded hover:bg-accent"><X className="h-3.5 w-3.5 text-muted-foreground" /></button>
+          </div>
+        )}
+
+        {/* Pending media preview */}
+        {pendingMedia && (
+          <div className="relative inline-block px-3 py-1.5">
+            {pendingMedia.file.type.startsWith("video/") ? (
+              <video src={pendingMedia.previewUrl} className="h-20 rounded-lg object-cover" muted />
+            ) : (
+              <img src={pendingMedia.previewUrl} alt="pending" className="h-20 rounded-lg object-cover" />
+            )}
+            <button onClick={clearPendingMedia} className="absolute top-0.5 right-0.5 bg-background rounded-full p-0.5 shadow">
+              <X className="h-3.5 w-3.5" />
             </button>
           </div>
         )}
 
-        {/* Pending image preview */}
-        {pendingImage && (
-          <div className="relative inline-block px-3 py-1.5">
-            <img src={pendingImage.previewUrl} alt="pending" className="h-20 rounded-lg object-cover" />
-            <button
-              onClick={() => { URL.revokeObjectURL(pendingImage.previewUrl); setPendingImage(null); }}
-              className="absolute top-0.5 right-0.5 bg-background rounded-full p-0.5 shadow"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
+        {/* Pending file preview */}
+        {pendingFile && (
+          <div className="flex items-center gap-2 px-3 py-2 mx-2 mb-1 rounded-lg bg-muted/60">
+            <span className="text-lg">📄</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium truncate">{pendingFile.file.name}</p>
+              <p className="text-[10px] text-muted-foreground">{formatBytes(pendingFile.file.size)}</p>
+            </div>
+            <button onClick={() => setPendingFile(null)} className="p-1 rounded hover:bg-accent"><X className="h-3.5 w-3.5 text-muted-foreground" /></button>
           </div>
         )}
 
         <div className="p-2">
           {canPost ? (
             <div className="flex items-end gap-2">
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
               {!isRecording && (
                 <>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="p-2 rounded-full hover:bg-accent text-muted-foreground shrink-0"
-                    aria-label="Attach image"
-                    disabled={uploading}
-                  >
-                    <ImagePlus className="h-5 w-5" />
-                  </button>
+                  <AttachmentPicker onMediaSelect={handleMediaSelect} onFileSelect={handleFileSelect} disabled={uploading} />
                   <textarea
                     value={draft}
                     onChange={handleTyping}
@@ -315,27 +323,21 @@ export default function ChannelView() {
                   />
                 </>
               )}
-              {!isRecording && (draft.trim() || pendingImage) ? (
+              {!isRecording && (draft.trim() || pendingMedia || pendingFile) ? (
                 <button
                   onClick={handleSend}
-                  disabled={(!draft.trim() && !pendingImage) || uploading}
+                  disabled={(!draft.trim() && !pendingMedia && !pendingFile) || uploading}
                   className="p-2 rounded-full bg-primary text-primary-foreground disabled:opacity-40 shrink-0"
                   aria-label="Send"
                 >
                   <Send className="h-4 w-4" />
                 </button>
               ) : (
-                <VoiceRecorder
-                  onRecorded={handleVoiceRecorded}
-                  onRecordingChange={setIsRecording}
-                  disabled={uploading}
-                />
+                <VoiceRecorder onRecorded={handleVoiceRecorded} onRecordingChange={setIsRecording} disabled={uploading} />
               )}
             </div>
           ) : (
-            <p className="text-xs text-center text-muted-foreground py-2">
-              Only admins can post in this channel.
-            </p>
+            <p className="text-xs text-center text-muted-foreground py-2">Only admins can post in this channel.</p>
           )}
         </div>
       </div>
