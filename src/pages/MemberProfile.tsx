@@ -8,6 +8,7 @@ import PublicProfileHeader from "@/components/member/PublicProfileHeader";
 import BioCard from "@/components/member/BioCard";
 import LatestRunCard from "@/components/member/LatestRunCard";
 import PhotoGallery from "@/components/member/PhotoGallery";
+import MemberContactActions from "@/components/member/MemberContactActions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -59,6 +60,7 @@ export default function MemberProfile() {
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
       <PublicProfileHeader member={member} primaryDept={primary} />
+      <MemberContactActions member={member} />
       {!isSelf && (
         <Button onClick={handleMessage} className="w-full gap-2" variant="outline">
           <MessageCircle className="h-4 w-4" />

@@ -31,7 +31,7 @@ export default function ArchiveCard({ archive }: { archive: Archive }) {
   return (
     <button
       onClick={() => navigate(`/library/archive/${archive.id}`)}
-      className="text-left rounded-lg border border-border overflow-hidden bg-card hover:bg-accent/30 transition-colors flex flex-col"
+      className="text-left rounded-lg border border-brand-royal/20 overflow-hidden bg-card hover:bg-brand-royal-tint transition-colors flex flex-col"
     >
       <div className="aspect-video w-full bg-muted overflow-hidden">
         {archive.cover_url ? (

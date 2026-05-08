@@ -15,7 +15,7 @@ export interface LeaderboardRow {
 export async function getMonthlyLeaderboard(monthStart: string): Promise<LeaderboardRow[]> {
   const { data, error } = await supabase.rpc("get_monthly_leaderboard", { month_start: monthStart });
   if (error) throw error;
-  return (data ?? []).map((r: any) => ({
+  return (data ?? []).map((r: LeaderboardRow) => ({
     ...r,
     total_reps: Number(r.total_reps),
     submission_count: Number(r.submission_count),
@@ -106,6 +106,10 @@ export function currentSastMondayISO(now = new Date()): string {
 export function currentSastDayOfWeek(now = new Date()): number {
   const sast = new Date(now.getTime() + 2 * 60 * 60 * 1000);
   return sast.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+}
+
+export function sastDateKey(date = new Date()): string {
+  return new Date(date.getTime() + 2 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 
 export function currentMonthStartISO(now = new Date()): string {

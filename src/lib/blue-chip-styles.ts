@@ -6,16 +6,17 @@ type ChipTone = {
   hex: string;
 };
 
-// Shades derived from the provided stacked-blue palette (dark → light).
-// We use these as the *selected* (solid) color; unselected uses a tint.
+// A controlled Family Ties blue spectrum: navy, royal, cobalt, azure, and pale blue.
+// Text contrast is computed per shade so selected chips stay readable.
 const TONES: ChipTone[] = [
-  { hex: "#022859" },
-  { hex: "#023E8A" },
-  { hex: "#0353A4" },
-  { hex: "#0466C8" },
-  { hex: "#0B72E9" },
+  { hex: "#061A40" },
+  { hex: "#1512D3" },
+  { hex: "#123F96" },
+  { hex: "#1F5FBF" },
+  { hex: "#2F80ED" },
   { hex: "#5A96F5" },
   { hex: "#9CC0FF" },
+  { hex: "#D9E6FF" },
 ];
 
 function hexToRgb(hex: string) {
@@ -35,19 +36,31 @@ function toneFor(key: string) {
   return TONES[hashKey(key) % TONES.length];
 }
 
+function contrastText(hex: string) {
+  const { r, g, b } = hexToRgb(hex);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.58 ? "#0A0A0F" : "#FFFFFF";
+}
+
 const BASE_CHIP_CLASS =
   "shrink-0 min-h-[36px] rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-royal";
 
 export function blueChipStyle(key: string, selected: boolean): CSSProperties {
   const tone = toneFor(key);
   const { r, g, b } = hexToRgb(tone.hex);
+  const color = contrastText(tone.hex);
   if (selected) {
-    return { backgroundColor: tone.hex, borderColor: tone.hex, color: "#FFFFFF" };
+    return {
+      backgroundColor: tone.hex,
+      borderColor: tone.hex,
+      color,
+      boxShadow: `inset 0 0 0 1px rgba(${r},${g},${b},0.35)`,
+    };
   }
   return {
-    backgroundColor: `rgba(${r},${g},${b},0.75)`,
-    borderColor: `rgba(${r},${g},${b},0.85)`,
-    color: "#FFFFFF",
+    backgroundColor: `rgba(${r},${g},${b},0.78)`,
+    borderColor: `rgba(${r},${g},${b},0.95)`,
+    color,
   };
 }
 
@@ -58,4 +71,3 @@ export function blueChipStyle(key: string, selected: boolean): CSSProperties {
 export function blueChipClassName(_key: string, _selected: boolean) {
   return cn(BASE_CHIP_CLASS, "hover:brightness-[0.98]");
 }
-

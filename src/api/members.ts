@@ -15,7 +15,7 @@ export interface PublicMember {
 }
 
 export async function getPublicMemberById(id: string): Promise<PublicMember | null> {
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("public_member_profiles")
     .select("*")
     .eq("id", id)

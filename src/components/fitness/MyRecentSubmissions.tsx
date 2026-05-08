@@ -25,7 +25,7 @@ export default function MyRecentSubmissions() {
               <EmojiIcon cp={meta.emoji.cp} alt={meta.emoji.alt} size={16} />
               <span className="font-medium">{meta.label}</span>
               <span className="text-muted-foreground">· {formatRepsLabel(s.exercise, s.reps)}</span>
-              {s.video_url && <Video className="h-3.5 w-3.5 text-primary" />}
+              {s.video_url && <Video className="h-3.5 w-3.5 text-brand-royal" strokeWidth={1.5} />}
             </span>
             <span className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(s.submitted_at), { addSuffix: true })}</span>
           </li>

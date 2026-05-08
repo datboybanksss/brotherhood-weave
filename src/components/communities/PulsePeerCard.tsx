@@ -6,6 +6,7 @@ import { useCurrentPeerPartner } from "@/hooks/useCurrentPeerPartner";
 import { getOrCreateConversation } from "@/api/direct-messages";
 import { toast } from "sonner";
 import EmojiIcon from "@/components/EmojiIcon";
+import { formatClubAddressName } from "@/lib/member-names";
 
 export default function PulsePeerCard() {
   const { data } = useCurrentPeerPartner();
@@ -27,7 +28,7 @@ export default function PulsePeerCard() {
   };
 
   return (
-    <div className="rounded-2xl border border-stroke-hairline bg-card p-4 space-y-3">
+    <div className="rounded-2xl border border-brand-royal/20 bg-card p-4 space-y-3">
       <div className="flex items-center gap-2">
         <EmojiIcon cp="1f465" alt="People" size={16} />
         <p className="text-xs uppercase tracking-wide text-text-muted font-medium">Your peer this week</p>
@@ -45,7 +46,7 @@ export default function PulsePeerCard() {
                 >
                   <Avatar userId={p.id} size="md" showStatus />
                   <div className="min-w-0">
-                    <p className="font-semibold text-sm text-foreground truncate">{p.full_name.split(" ")[0]}</p>
+                    <p className="font-semibold text-sm text-foreground truncate">{formatClubAddressName(p.full_name)}</p>
                     {p.primary_department && (
                       <p className="text-xs text-text-muted truncate">{p.primary_department}</p>
                     )}
@@ -55,7 +56,7 @@ export default function PulsePeerCard() {
                   onClick={() => handleMessage(p.id)}
                   disabled={loadingId === p.id}
                   className="p-2 rounded-full hover:bg-accent disabled:opacity-40 shrink-0"
-                  aria-label={`Message ${p.full_name.split(" ")[0]}`}
+                  aria-label={`Message ${formatClubAddressName(p.full_name)}`}
                 >
                   <EmojiIcon cp="1f4ac" alt="Message" size={18} />
                 </button>

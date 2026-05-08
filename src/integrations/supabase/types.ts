@@ -1238,6 +1238,58 @@ export type Database = {
           },
         ]
       }
+      member_social_links: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          platform: string
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          platform: string
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          platform?: string
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_social_links_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "member_avatars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_social_links_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_social_links_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_photos: {
         Row: {
           created_at: string

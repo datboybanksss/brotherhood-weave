@@ -30,7 +30,7 @@ export async function updateProfile(userId: string, data: {
   if (data.title !== undefined) payload.title = data.title || null;
   if (data.current_city !== undefined) payload.current_city = data.current_city || null;
   if (data.email_visible !== undefined) payload.email_visible = data.email_visible;
-  const { error } = await (supabase as any).from("users").update(payload).eq("id", userId);
+  const { error } = await supabase.from("users").update(payload).eq("id", userId);
   if (error) throw error;
 }
 
@@ -47,7 +47,7 @@ export async function deleteAvatar(userId: string) {
     const paths = list.map((f) => `${userId}/${f.name}`);
     await supabase.storage.from("avatars").remove(paths);
   }
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("users")
     .update({ avatar_url: null })
     .eq("id", userId);

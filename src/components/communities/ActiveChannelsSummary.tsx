@@ -18,7 +18,7 @@ export default function ActiveChannelsSummary({ onViewAll }: Props) {
   if (top.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-stroke-hairline bg-card overflow-hidden">
+    <div className="rounded-2xl border border-brand-royal/20 bg-card overflow-hidden">
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <p className="text-xs uppercase tracking-wide text-text-muted font-medium">Active Channels</p>
         <button onClick={onViewAll} className="text-xs text-brand-royal flex items-center gap-0.5 hover:opacity-80">

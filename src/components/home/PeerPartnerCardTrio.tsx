@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import Avatar from "@/components/Avatar";
 import { stopTile } from "./BentoGrid";
 import type { PartnerInfo } from "@/api/peers";
+import { formatClubAddressName } from "@/lib/member-names";
 
 interface Props { partners: PartnerInfo[]; weekEnd: Date }
 
@@ -25,7 +26,7 @@ export default function PeerPartnerCardTrio({ partners, weekEnd }: Props) {
           >
             <Avatar userId={p.id} size="md" />
             <div className="min-w-0 flex-1">
-              <p className="font-medium text-foreground truncate">{p.full_name}</p>
+              <p className="font-medium text-foreground truncate">{formatClubAddressName(p.full_name)}</p>
               {p.primary_department && (
                 <p className="text-xs text-muted-foreground">{p.primary_department}</p>
               )}

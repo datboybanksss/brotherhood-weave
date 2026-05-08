@@ -29,7 +29,7 @@ export default function PlaybookCard({ playbook }: Props) {
   return (
     <button
       onClick={() => navigate(`/library/playbook/${playbook.slug}`)}
-      className="flex flex-col text-left rounded-lg border border-border p-3 gap-2 hover:bg-accent/50 transition-colors h-full"
+      className="flex flex-col text-left rounded-lg border border-brand-royal/20 p-3 gap-2 hover:bg-brand-royal-tint transition-colors h-full"
     >
       <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full w-fit capitalize ${colorClass}`}>
         {playbook.category}

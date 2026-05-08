@@ -1,10 +1,10 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Camera, ImagePlus, Trash2 } from "lucide-react";
+import { Camera, Globe, ImagePlus, Instagram, Linkedin, Music2, Trash2, Twitter, Youtube } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { deleteAvatar, updateProfile, uploadAvatar } from "@/api/account";
 import type { AppUser } from "@/hooks/useCurrentUser";
+import { getMemberSocialLinks, replaceMySocialLinks } from "@/api/social-links";
+import { normalizeSocialUrl, SOCIAL_PLATFORMS, type SocialPlatform } from "@/lib/social-links";
 
 const schema = z.object({
   full_name: z.string().min(2, "Name must be at least 2 characters"),
@@ -22,12 +24,23 @@ const schema = z.object({
 });
 
 type FormData = z.infer<typeof schema>;
+type SocialDraft = Partial<Record<SocialPlatform, string>>;
+
+const socialIcons = {
+  instagram: Instagram,
+  linkedin: Linkedin,
+  tiktok: Music2,
+  x: Twitter,
+  youtube: Youtube,
+  website: Globe,
+} satisfies Record<SocialPlatform, typeof Instagram>;
 
 export default function EditProfileForm({ user }: { user: AppUser }) {
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [socialDraft, setSocialDraft] = useState<SocialDraft>({});
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -42,6 +55,26 @@ export default function EditProfileForm({ user }: { user: AppUser }) {
   const bioValue = watch("bio") ?? "";
   const titleValue = watch("title") ?? "";
   const emailVisible = watch("email_visible") ?? false;
+
+  const { data: socialLinks } = useQuery({
+    queryKey: ["memberSocialLinks", user.id],
+    queryFn: () => getMemberSocialLinks(user.id),
+    staleTime: 30_000,
+  });
+
+  useEffect(() => {
+    if (!socialLinks) return;
+    setSocialDraft(Object.fromEntries(socialLinks.map((link) => [link.platform, link.url])) as SocialDraft);
+  }, [socialLinks]);
+
+  const toggleSocialPlatform = (platform: SocialPlatform) => {
+    setSocialDraft((current) => {
+      const next = { ...current };
+      if (platform in next) delete next[platform];
+      else next[platform] = "";
+      return next;
+    });
+  };
 
   const avatarMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -74,17 +107,35 @@ export default function EditProfileForm({ user }: { user: AppUser }) {
   });
 
   const mutation = useMutation({
-    mutationFn: (data: FormData) => updateProfile(user.id, {
-      full_name: data.full_name,
-      avatar_url: user.avatar_url,
-      bio: data.bio ?? null,
-      title: data.title ?? null,
-      current_city: data.current_city ?? null,
-      email_visible: data.email_visible ?? false,
-    }),
+    mutationFn: (data: FormData) => {
+      const selectedLinks = Object.entries(socialDraft).map(([platform, value]) => {
+        const normalized = normalizeSocialUrl(platform as SocialPlatform, value);
+        if ((value ?? "").trim() && !normalized) {
+          const label = SOCIAL_PLATFORMS.find((option) => option.platform === platform)?.label ?? "Social";
+          throw new Error(`Enter a valid ${label} handle or URL`);
+        }
+        return normalized ? { platform: platform as SocialPlatform, url: normalized } : null;
+      }).filter((link): link is { platform: SocialPlatform; url: string } => link !== null);
+
+      return Promise.all([
+        updateProfile(user.id, {
+        full_name: data.full_name,
+        avatar_url: user.avatar_url,
+        bio: data.bio ?? null,
+        title: data.title ?? null,
+        current_city: data.current_city ?? null,
+        email_visible: data.email_visible ?? false,
+        }),
+        replaceMySocialLinks(user.id, selectedLinks.map((link) => ({
+          ...link,
+          display_order: SOCIAL_PLATFORMS.findIndex((option) => option.platform === link.platform),
+        }))),
+      ]);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
       queryClient.invalidateQueries({ queryKey: ["publicMember", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["memberSocialLinks", user.id] });
       toast.success("Profile updated");
     },
     onError: (err: Error) => toast.error(err.message),
@@ -172,16 +223,61 @@ export default function EditProfileForm({ user }: { user: AppUser }) {
         {errors.bio && <p className="text-xs text-destructive">{errors.bio.message}</p>}
       </div>
 
-      <div className="flex items-start justify-between gap-3 rounded-md border border-border p-3">
+      <div className="flex items-start justify-between gap-3 rounded-md border border-brand-royal/20 p-3">
         <div className="space-y-0.5">
-          <Label htmlFor="email_visible" className="cursor-pointer">Show my email on my public profile</Label>
-          <p className="text-xs text-muted-foreground">Off by default. Toggle off anytime.</p>
+          <Label htmlFor="email_visible" className="cursor-pointer">Email contact</Label>
+          <p className="text-xs text-muted-foreground">Shows a mail icon on your member profile. Off by default.</p>
         </div>
         <Switch
           id="email_visible"
           checked={emailVisible}
           onCheckedChange={(v) => setValue("email_visible", v, { shouldDirty: true })}
         />
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">Social profiles</h3>
+          <p className="text-xs text-muted-foreground">Select the platforms you want visible, then add a handle or URL.</p>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {SOCIAL_PLATFORMS.map((option) => {
+            const Icon = socialIcons[option.platform];
+            const selected = option.platform in socialDraft;
+            return (
+              <button
+                key={option.platform}
+                type="button"
+                onClick={() => toggleSocialPlatform(option.platform)}
+                className={`flex min-h-[48px] flex-col items-center justify-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-colors ${
+                  selected
+                    ? "border-brand-royal bg-brand-royal-tint text-brand-royal"
+                    : "border-brand-royal/20 bg-surface-white text-text-muted"
+                }`}
+              >
+                <Icon className="h-4 w-4" strokeWidth={1.5} />
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+        <div className="space-y-2">
+          {SOCIAL_PLATFORMS.filter((option) => option.platform in socialDraft).map((option) => (
+            <div key={option.platform} className="space-y-1">
+              <Label htmlFor={`social_${option.platform}`}>{option.label}</Label>
+              <Input
+                id={`social_${option.platform}`}
+                value={socialDraft[option.platform] ?? ""}
+                maxLength={300}
+                placeholder={option.placeholder}
+                onChange={(event) => setSocialDraft((current) => ({
+                  ...current,
+                  [option.platform]: event.target.value,
+                }))}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       <Button type="submit" className="w-full min-h-[48px]" disabled={mutation.isPending}>

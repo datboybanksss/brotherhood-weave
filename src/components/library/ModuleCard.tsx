@@ -20,7 +20,7 @@ export default function ModuleCard({ slug, title, description, locked, requiredT
     <button
       onClick={!locked ? () => navigate(`/library/module/${slug}`) : undefined}
       disabled={locked}
-      className={`w-full text-left rounded-lg border border-border p-4 space-y-2 transition-colors ${locked ? "opacity-60 cursor-not-allowed" : "hover:bg-accent/50"}`}
+      className={`w-full text-left rounded-lg border border-brand-royal/20 p-4 space-y-2 transition-colors ${locked ? "opacity-60 cursor-not-allowed" : "hover:bg-brand-royal-tint"}`}
     >
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-foreground">{title}</h3>
