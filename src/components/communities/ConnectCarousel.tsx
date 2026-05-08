@@ -28,7 +28,7 @@ function Card({ m }: { m: CarouselMember }) {
           loading="lazy"
         />
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted text-muted-foreground font-sans font-semibold text-2xl">
+        <div className="absolute inset-0 flex items-center justify-center bg-muted text-muted-foreground font-sans font-semibold text-6xl tracking-tight">
           {initials}
         </div>
       )}
