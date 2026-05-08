@@ -22,7 +22,14 @@ export async function updateProfile(userId: string, data: {
   current_city?: string | null;
   email_visible?: boolean;
 }) {
-  const payload: Record<string, unknown> = {
+  const payload: {
+    full_name: string;
+    avatar_url: string | null;
+    bio?: string | null;
+    title?: string | null;
+    current_city?: string | null;
+    email_visible?: boolean;
+  } = {
     full_name: data.full_name,
     avatar_url: data.avatar_url || null,
   };
