@@ -89,8 +89,8 @@ export default function Home() {
           colBase={1}
           colMd={2}
           variant="stat"
-          to="https://familyties.shop"
-          ariaLabel="Buy merchandise"
+          to="/library/module/2-the-money-manual"
+          ariaLabel="Open Money Manual"
           className="md:hidden p-3 md:p-5"
         >
           <BuyMerchandiseCard />
