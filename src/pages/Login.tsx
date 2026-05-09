@@ -61,6 +61,17 @@ export default function Login() {
         </p>
         <AuthDivider />
         <GoogleSignInButton />
+        <p className="text-center text-xs leading-5 text-muted-foreground">
+          By continuing, you agree to the{" "}
+          <Link to="/terms" className="font-medium text-brand-royal underline">
+            Terms
+          </Link>{" "}
+          and acknowledge the{" "}
+          <Link to="/privacy" className="font-medium text-brand-royal underline">
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </div>
     </div>
   );

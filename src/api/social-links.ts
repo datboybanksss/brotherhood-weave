@@ -7,6 +7,11 @@ export interface MemberSocialLink {
   platform: SocialPlatform;
   url: string;
   display_order: number;
+  verification_status: "unverified" | "pending" | "verified" | "failed";
+  verified_at: string | null;
+  verification_method: string | null;
+  platform_user_id: string | null;
+  platform_username: string | null;
 }
 
 export interface SocialLinkInput {
@@ -18,7 +23,7 @@ export interface SocialLinkInput {
 export async function getMemberSocialLinks(userId: string): Promise<MemberSocialLink[]> {
   const { data, error } = await supabase
     .from("member_social_links")
-    .select("id, user_id, platform, url, display_order")
+    .select("id, user_id, platform, url, display_order, verification_status, verified_at, verification_method, platform_user_id, platform_username")
     .eq("user_id", userId)
     .order("display_order", { ascending: true })
     .order("platform", { ascending: true });

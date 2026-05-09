@@ -38,6 +38,7 @@ import AdminEvents from "@/pages/admin/Events";
 import EventForm from "@/components/admin/EventForm";
 import AuthCallback from "@/pages/AuthCallback";
 import InviteRedemption from "@/pages/InviteRedemption";
+import Legal from "@/pages/Legal";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,9 @@ const App = () => (
           <Routes>
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/invite/:token" element={<InviteRedemption />} />
+            <Route path="/legal" element={<Legal />} />
+            <Route path="/privacy" element={<Legal />} />
+            <Route path="/terms" element={<Legal />} />
             <Route element={<RouteGuard />}>
               <Route path="/" element={<Navigate to="/home" replace />} />
               <Route path="/signup" element={<Signup />} />

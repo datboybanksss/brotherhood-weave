@@ -4,12 +4,20 @@ CREATE TABLE public.member_social_links (
   platform text NOT NULL,
   url text NOT NULL,
   display_order integer NOT NULL DEFAULT 0,
+  verification_status text NOT NULL DEFAULT 'unverified',
+  verification_method text,
+  platform_user_id text,
+  platform_username text,
+  verified_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT member_social_links_platform_chk CHECK (
     platform IN ('instagram', 'linkedin', 'tiktok', 'x', 'youtube', 'website')
   ),
   CONSTRAINT member_social_links_url_length CHECK (char_length(url) <= 300),
+  CONSTRAINT member_social_links_verification_status_chk CHECK (
+    verification_status IN ('unverified', 'pending', 'verified', 'failed')
+  ),
   CONSTRAINT member_social_links_unique_platform UNIQUE (user_id, platform)
 );
 

@@ -238,7 +238,7 @@ export default function EditProfileForm({ user }: { user: AppUser }) {
       <div className="space-y-3">
         <div>
           <h3 className="text-sm font-semibold text-foreground">Social profiles</h3>
-          <p className="text-xs text-muted-foreground">Select the platforms you want visible, then add a handle or URL.</p>
+          <p className="text-xs text-muted-foreground">Save the platforms you want to verify. They stay private until connected through the platform API.</p>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {SOCIAL_PLATFORMS.map((option) => {

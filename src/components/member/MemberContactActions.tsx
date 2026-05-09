@@ -77,7 +77,7 @@ export default function MemberContactActions({ member }: Props) {
       label: "Email",
       icon: GmailIcon,
     } : null,
-    ...(socialLinks ?? []).map((link) => ({
+    ...(socialLinks ?? []).filter((link) => link.verification_status === "verified" && !!link.verified_at).map((link) => ({
       href: link.url,
       label: socialLabels[link.platform],
       icon: socialIcons[link.platform],
