@@ -13,6 +13,12 @@ import { isTimeBased, type ExerciseKey } from "@/lib/exercises";
 import { logSubmission, uploadSubmissionVideo, attachVideoToSubmission } from "@/api/submissions";
 import { useAuth } from "@/hooks/useAuth";
 
+const isRetentionOption = (value: string): value is "90_days" | "forever" =>
+  value === "90_days" || value === "forever";
+
+const isVisibilityOption = (value: string): value is "public" | "private" =>
+  value === "public" || value === "private";
+
 export default function LogActivityDialog({ trigger }: { trigger: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [exercise, setExercise] = useState<ExerciseKey | undefined>();
@@ -27,7 +33,7 @@ export default function LogActivityDialog({ trigger }: { trigger: React.ReactNod
 
   const reset = () => { setExercise(undefined); setReps(""); setNote(""); setVideo(null); setRetention("90_days"); setVisibility("public"); };
   const invalidate = () => {
-    ["myRecentSubmissions","fitnessLeaderboard","myMonthlyStats","myWeeklyCount","memberSubmissions","forfeitList","memberMonthlyStats"]
+    ["myRecentSubmissions","myMonthlyActivity","fitnessLeaderboard","myMonthlyStats","myWeeklyCount","memberSubmissions","forfeitList","memberMonthlyStats"]
       .forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
   };
 
@@ -94,14 +100,14 @@ export default function LogActivityDialog({ trigger }: { trigger: React.ReactNod
             <>
               <div>
                 <Label>Video retention</Label>
-                <RadioGroup value={retention} onValueChange={(v) => setRetention(v as any)} className="mt-2">
+                <RadioGroup value={retention} onValueChange={(v) => { if (isRetentionOption(v)) setRetention(v); }} className="mt-2">
                   <div className="flex items-center gap-2"><RadioGroupItem value="90_days" id="r90" /><Label htmlFor="r90" className="font-normal">Delete after 90 days</Label></div>
                   <div className="flex items-center gap-2"><RadioGroupItem value="forever" id="rfor" /><Label htmlFor="rfor" className="font-normal">Keep forever</Label></div>
                 </RadioGroup>
               </div>
               <div>
                 <Label>Video visibility</Label>
-                <RadioGroup value={visibility} onValueChange={(v) => setVisibility(v as any)} className="mt-2">
+                <RadioGroup value={visibility} onValueChange={(v) => { if (isVisibilityOption(v)) setVisibility(v); }} className="mt-2">
                   <div className="flex items-center gap-2"><RadioGroupItem value="public" id="vpub" /><Label htmlFor="vpub" className="font-normal">Public — visible to all members</Label></div>
                   <div className="flex items-center gap-2"><RadioGroupItem value="private" id="vpri" /><Label htmlFor="vpri" className="font-normal">Private — only I can view</Label></div>
                 </RadioGroup>

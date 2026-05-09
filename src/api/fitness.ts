@@ -51,6 +51,14 @@ export interface MonthlyStats {
   rank: number;
 }
 
+export interface MonthlyActivityDay {
+  date: string;
+  reps: number;
+  submission_count: number;
+  run_km: number;
+  tier: 0 | 1 | 2 | 3;
+}
+
 export async function getUserMonthlyStats(userId: string, monthStart: string): Promise<MonthlyStats> {
   const { data, error } = await supabase.rpc("get_user_monthly_stats", {
     _user_id: userId, month_start: monthStart,
@@ -83,6 +91,69 @@ export async function getMemberSubmissionsSigned(userId: string, limit = 50): Pr
   });
   if (error) throw error;
   return (data?.submissions ?? []) as SignedSubmission[];
+}
+
+export async function getMyMonthlyActivity(monthStartISO: string): Promise<MonthlyActivityDay[]> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) return [];
+
+  const start = new Date(`${monthStartISO}T00:00:00.000Z`);
+  const end = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1));
+  const daysInMonth = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0)).getUTCDate();
+  const byDate = new Map<string, Omit<MonthlyActivityDay, "tier">>();
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const date = `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    byDate.set(date, { date, reps: 0, submission_count: 0, run_km: 0 });
+  }
+
+  const [submissions, workouts] = await Promise.all([
+    supabase
+      .from("submissions")
+      .select("reps, submitted_at")
+      .eq("user_id", uid)
+      .gte("submitted_at", start.toISOString())
+      .lt("submitted_at", end.toISOString()),
+    supabase
+      .from("workouts")
+      .select("distance_km, ran_at")
+      .eq("user_id", uid)
+      .gte("ran_at", monthStartISO)
+      .lt("ran_at", end.toISOString().slice(0, 10)),
+  ]);
+
+  if (submissions.error) throw submissions.error;
+  if (workouts.error) throw workouts.error;
+
+  for (const row of submissions.data ?? []) {
+    const date = sastDateKey(new Date(row.submitted_at));
+    const day = byDate.get(date);
+    if (!day) continue;
+    day.reps += Number(row.reps ?? 0);
+    day.submission_count += 1;
+  }
+
+  for (const row of workouts.data ?? []) {
+    const date = row.ran_at;
+    const day = byDate.get(date);
+    if (!day) continue;
+    day.run_km += Number(row.distance_km ?? 0);
+  }
+
+  return Array.from(byDate.values()).map((day) => {
+    const hitBenchmark = day.reps >= 50;
+    const hitRun = day.run_km >= 3;
+    const extraWorkout = day.submission_count >= 2;
+    const tier: MonthlyActivityDay["tier"] = hitBenchmark && hitRun && extraWorkout
+      ? 3
+      : hitBenchmark && hitRun
+        ? 2
+        : hitBenchmark
+          ? 1
+          : 0;
+    return { ...day, tier };
+  });
 }
 
 /**

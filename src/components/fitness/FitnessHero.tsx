@@ -4,7 +4,14 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { supabase } from "@/lib/supabase";
 import Avatar from "@/components/Avatar";
 import EmojiIcon from "@/components/EmojiIcon";
-import { currentMonthStartISO, currentSastMondayISO, getUserStreak, sastDateKey } from "@/api/fitness";
+import {
+  currentMonthStartISO,
+  currentSastMondayISO,
+  getMyMonthlyActivity,
+  getUserStreak,
+  sastDateKey,
+  type MonthlyActivityDay,
+} from "@/api/fitness";
 import { getMyWeeklySubmissionCount, getMyRecentSubmissions } from "@/api/submissions";
 import LogActivityDialog from "./LogActivityDialog";
 import { Button } from "@/components/ui/button";
@@ -58,6 +65,13 @@ export default function FitnessHero() {
     staleTime: 30_000,
   });
   const { data: feed } = useBrotherhoodFeed(80);
+  const monthDays = getMonthDayShell(month);
+  const { data: monthlyActivity } = useQuery({
+    queryKey: ["myMonthlyActivity", month],
+    queryFn: () => getMyMonthlyActivity(month),
+    placeholderData: monthDays,
+    staleTime: 30_000,
+  });
 
   const todayMovers = new Set((feed ?? []).filter((item) => sastDateKey(new Date(item.ts)) === todayKey).map((item) => item.user_id));
   const loggedToday = !!user?.id && todayMovers.has(user.id);
@@ -138,6 +152,8 @@ export default function FitnessHero() {
           </p>
         </div>
       </div>
+
+      <MonthlyActivityHeatmap monthName={monthName} days={monthlyActivity ?? monthDays} />
     </section>
   );
 }
@@ -152,4 +168,90 @@ function StatPill({ label, value, suffix = "" }: { label: string; value: number;
       <div className="text-[10px] uppercase tracking-wide text-text-muted mt-1">{label}</div>
     </div>
   );
+}
+
+function MonthlyActivityHeatmap({ monthName, days }: { monthName: string; days: MonthlyActivityDay[] }) {
+  const completedDays = days.filter((day) => day.tier > 0).length;
+  const bestTier = days.reduce((max, day) => Math.max(max, day.tier), 0);
+
+  return (
+    <div className="mt-3 rounded-lg border border-brand-royal/20 bg-surface-white px-3 py-3">
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <div>
+          <p className="text-[11px] font-semibold text-text-ink">Daily activity</p>
+          <p className="text-[10px] text-text-muted">
+            50 reps lights the day.
+          </p>
+        </div>
+        <div className="text-right shrink-0">
+          <p className="text-[11px] font-semibold text-brand-royal">{completedDays}</p>
+          <p className="text-[9px] uppercase tracking-wide text-text-muted">days</p>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="w-full min-w-0">
+          <p className="mb-1.5 text-center text-[10px] font-semibold uppercase tracking-wide text-text-muted">{monthName}</p>
+          <div
+            className="mx-auto grid w-fit grid-cols-8 gap-1"
+            aria-label={`${monthName} daily activity heatmap`}
+          >
+            {days.map((day) => (
+              <div
+                key={day.date}
+                title={`${day.date}: ${activityTitle(day)}`}
+                className={`flex h-4 w-4 items-center justify-center rounded-[3px] border text-[7px] font-semibold tabular-nums transition-colors ${activityColor(day.tier)}`}
+                aria-label={`${day.date}: ${activityTitle(day)}`}
+              >
+                {Number(day.date.slice(-2))}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-center gap-1 text-[9px] text-text-muted">
+          <span>Less</span>
+          {[0, 1, 2, 3].map((tier) => (
+            <span key={tier} className={`h-2.5 w-2.5 rounded-[3px] border ${activityColor(tier as MonthlyActivityDay["tier"])}`} />
+          ))}
+          <span>More</span>
+        </div>
+      </div>
+
+      {bestTier === 0 && (
+        <p className="mt-2 text-center text-[10px] text-text-muted">No benchmark days logged yet.</p>
+      )}
+    </div>
+  );
+}
+
+function activityColor(tier: MonthlyActivityDay["tier"]) {
+  switch (tier) {
+    case 3:
+      return "border-brand-royal bg-brand-royal text-white";
+    case 2:
+      return "border-brand-royal/50 bg-brand-royal/70 text-white";
+    case 1:
+      return "border-sky-300 bg-sky-200 text-brand-royal";
+    default:
+      return "border-stroke-hairline bg-surface-muted text-text-muted";
+  }
+}
+
+function activityTitle(day: MonthlyActivityDay) {
+  if (day.tier === 0) return "No benchmark activity";
+  if (day.tier === 1) return `${day.reps} reps`;
+  if (day.tier === 2) return `${day.reps} reps + ${day.run_km.toFixed(1)}km run`;
+  return `${day.reps} reps + ${day.run_km.toFixed(1)}km run + extra workout`;
+}
+
+function getMonthDayShell(monthStartISO: string): MonthlyActivityDay[] {
+  const start = new Date(`${monthStartISO}T00:00:00.000Z`);
+  const daysInMonth = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0)).getUTCDate();
+
+  return Array.from({ length: daysInMonth }, (_, index) => {
+    const day = index + 1;
+    const date = `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    return { date, reps: 0, submission_count: 0, run_km: 0, tier: 0 };
+  });
 }
