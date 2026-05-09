@@ -16,7 +16,7 @@ export async function getRecentArchivesForHome(): Promise<ArchiveCardItem[]> {
     .select("id, title, cover_url, content_type, domain, recorded_at")
     .eq("is_published", true)
     .order("recorded_at", { ascending: false })
-    .limit(4);
+    .limit(6);
   if (error) throw error;
   return (data ?? []) as ArchiveCardItem[];
 }
