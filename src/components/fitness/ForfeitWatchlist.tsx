@@ -48,7 +48,7 @@ export default function ForfeitWatchlist() {
         ) : (
           <>
             <p className="text-xs text-muted-foreground mb-2">
-              Brothers without a submission this week. The Saturday call sees this list.
+              This is the list of brothers who didn't workout this week. They will have to perform a forfeit on the Saturday call.
             </p>
             <div className="divide-y">
               {data.map((r) => <ForfeitRow key={r.user_id} row={r} isCurrentUser={r.user_id === user?.id} />)}
