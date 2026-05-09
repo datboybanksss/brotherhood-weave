@@ -176,7 +176,7 @@ function MonthlyActivityHeatmap({ monthName, days }: { monthName: string; days: 
 
   return (
     <div className="mt-3 rounded-lg border border-brand-royal/20 bg-surface-white px-3 py-2">
-      <p className="text-base font-semibold text-text-ink mb-1 text-left">Daily activity</p>
+      <p className="text-base font-semibold text-text-ink mb-1 text-center">Daily activity</p>
       <p className="text-[10px] text-text-muted text-center mb-1">50 reps lights the day.</p>
       <div className="mb-1.5 text-center">
         <p className="text-[11px] font-semibold text-brand-royal leading-tight">{completedDays}</p>
