@@ -178,7 +178,7 @@ function MonthlyActivityHeatmap({ monthName, days }: { monthName: string; days: 
     <div className="mt-3 rounded-lg border border-brand-royal/20 bg-surface-white px-3 py-3">
       <div className="flex items-start justify-between gap-3 mb-2">
         <div>
-          <p className="text-[11px] font-semibold text-text-ink">Daily activity</p>
+          <p className="text-[11px] font-semibold text-text-ink text-center">Daily activity</p>
           <p className="text-[10px] text-text-muted">
             50 reps lights the day.
           </p>
@@ -191,7 +191,7 @@ function MonthlyActivityHeatmap({ monthName, days }: { monthName: string; days: 
 
       <div className="space-y-2">
         <div className="w-full min-w-0">
-          <p className="mb-1.5 text-center text-[10px] font-semibold uppercase tracking-wide text-text-muted">{monthName}</p>
+          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-text-muted">{monthName}</p>
           <div
             className="mx-auto grid w-fit grid-cols-8 gap-1"
             aria-label={`${monthName} daily activity heatmap`}
