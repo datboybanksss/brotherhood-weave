@@ -127,14 +127,11 @@ export default function Home() {
           </BentoTile>
         )}
 
-        <BentoTile
-          colBase={2}
-          colMd={4}
-          ariaLabel="Archives"
-        >
-          <ArchivesCard />
-        </BentoTile>
       </BentoGrid>
+
+      <div className="mt-6">
+        <ArchivesCard />
+      </div>
 
       <OnboardingModal
         open={onboardingOpen}
