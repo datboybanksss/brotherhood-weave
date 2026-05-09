@@ -9,7 +9,6 @@ import RecentRunsFeed from "@/components/home/RecentRunsFeed";
 import { getMyWeeklySubmissionCount } from "@/api/submissions";
 import { currentSastMondayISO } from "@/api/fitness";
 import BrotherhoodActivityFeed from "@/components/fitness/BrotherhoodActivityFeed";
-import CompactLeaderboard from "@/components/fitness/CompactLeaderboard";
 import UpcomingFitnessEvents from "@/components/fitness/UpcomingFitnessEvents";
 import LogActivityFAB from "@/components/fitness/LogActivityFAB";
 import FitnessHero from "@/components/fitness/FitnessHero";
@@ -49,7 +48,6 @@ export default function Fitness() {
           </CardContent>
         </Card>
         <BrotherhoodActivityFeed />
-        <CompactLeaderboard />
         <MonthlyLeaderboard />
         <Card id="runs" className="scroll-mt-20">
           <CardHeader className="pb-2"><CardTitle className="text-base">Latest runs from the brotherhood</CardTitle></CardHeader>
