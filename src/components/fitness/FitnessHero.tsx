@@ -178,12 +178,9 @@ function MonthlyActivityHeatmap({ monthName, days }: { monthName: string; days: 
     <div className="mt-3 rounded-lg border border-brand-royal/20 bg-surface-white px-3 py-3">
       <p className="text-base font-semibold text-text-ink text-center mb-2">Daily activity</p>
       <p className="text-[10px] text-text-muted text-center mb-2">50 reps lights the day.</p>
-      <div className="flex items-start justify-between gap-3 mb-2 text-center">
-        <div />
-        <div className="text-right shrink-0">
-          <p className="text-[11px] font-semibold text-brand-royal">{completedDays}</p>
-          <p className="text-[9px] uppercase tracking-wide text-text-muted">days</p>
-        </div>
+      <div className="mb-2 text-center">
+        <p className="text-[11px] font-semibold text-brand-royal">{completedDays}</p>
+        <p className="text-[9px] uppercase tracking-wide text-text-muted">days</p>
       </div>
 
       <div className="space-y-2">
