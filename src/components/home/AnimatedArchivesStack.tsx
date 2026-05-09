@@ -5,6 +5,7 @@ import ArchiveCoverPlaceholder from "@/components/library/ArchiveCoverPlaceholde
 import { CONTENT_TYPE_LABEL } from "@/lib/archive-domains";
 import type { ArchiveCardItem } from "@/api/home-archives";
 import { stopTile } from "./BentoGrid";
+import { ChevronRight } from "lucide-react";
 
 const positionStyles = [
   { scale: 1, y: 12 },
@@ -17,24 +18,29 @@ const enterAnimation = { y: -16, scale: 0.9 };
 
 function CardFace({ archive, onClick }: { archive: ArchiveCardItem; onClick: (e: any) => void }) {
   return (
-    <button
-      onClick={onClick}
-      className="relative block w-full aspect-video overflow-hidden rounded-xl border border-border/60 bg-card shadow-md"
-    >
-      {archive.cover_url ? (
-        <img src={archive.cover_url} alt={archive.title} className="absolute inset-0 w-full h-full object-cover" />
-      ) : (
-        <div className="absolute inset-0">
-          <ArchiveCoverPlaceholder title={archive.title} contentType={archive.content_type} domain={archive.domain} size="lg" />
-        </div>
-      )}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 flex items-end justify-between gap-2">
-        <h3 className="text-sm font-bold text-white line-clamp-2 text-left flex-1">{archive.title}</h3>
-        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/90 text-foreground shrink-0">
-          {CONTENT_TYPE_LABEL[archive.content_type]}
-        </span>
+    <div className="w-full overflow-hidden rounded-2xl border border-border/60 bg-card shadow-lg">
+      <div className="relative w-full aspect-video overflow-hidden">
+        {archive.cover_url ? (
+          <img src={archive.cover_url} alt={archive.title} className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <div className="absolute inset-0">
+            <ArchiveCoverPlaceholder title={archive.title} contentType={archive.content_type} domain={archive.domain} size="lg" />
+          </div>
+        )}
       </div>
-    </button>
+      <div className="flex items-center justify-between gap-3 px-4 py-3 bg-card">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-bold text-foreground truncate uppercase tracking-tight">{archive.title}</h3>
+          <p className="text-[11px] uppercase tracking-wide text-muted-foreground truncate">{CONTENT_TYPE_LABEL[archive.content_type]}</p>
+        </div>
+        <button
+          onClick={onClick}
+          className="shrink-0 inline-flex items-center gap-1 rounded-full bg-foreground text-background pl-4 pr-3 py-2 text-sm font-semibold hover:opacity-90 transition-opacity"
+        >
+          Read <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
   );
 }
 
