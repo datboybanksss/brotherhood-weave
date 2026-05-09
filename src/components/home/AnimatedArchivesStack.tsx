@@ -37,7 +37,7 @@ function CardFace({ archive, onClick }: { archive: ArchiveCardItem; onClick: (e:
           onClick={onClick}
           className="shrink-0 inline-flex items-center gap-1 rounded-full bg-foreground text-background pl-4 pr-3 py-2 text-sm font-semibold hover:opacity-90 transition-opacity"
         >
-          Read <ChevronRight className="h-4 w-4" />
+          Watch <ChevronRight className="h-4 w-4" />
         </button>
       </div>
     </div>
