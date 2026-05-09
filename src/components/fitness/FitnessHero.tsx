@@ -90,7 +90,7 @@ export default function FitnessHero() {
           </div>
         </div>
         <LogActivityDialog trigger={
-          <Button size="sm" className="h-8 px-3 gap-1.5 shrink-0">
+          <Button size="sm" className="h-8 px-3 gap-1.5 shrink-0 bg-brand-royal text-text-inverse hover:bg-brand-royal-deep">
             <Plus className="h-4 w-4" />
             Log
           </Button>
