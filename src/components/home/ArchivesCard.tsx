@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useRecentArchives } from "@/hooks/useRecentArchives";
-import ArchivesHero from "./ArchivesHero";
+import AnimatedArchivesStack from "./AnimatedArchivesStack";
 import { stopTile } from "./BentoGrid";
 import archivesIcon from "@/assets/archives-icon.png";
 import EmojiIcon from "@/components/EmojiIcon";
@@ -31,7 +31,9 @@ export default function ArchivesCard() {
           <Button size="sm" variant="outline" onClick={goAll} className="mt-1">Browse Archives</Button>
         </div>
       ) : (
-        <ArchivesHero archive={archives[0]} />
+        <div className="pt-3 pb-12">
+          <AnimatedArchivesStack archives={archives} />
+        </div>
       )}
     </div>
   );
