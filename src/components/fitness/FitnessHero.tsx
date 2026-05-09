@@ -175,26 +175,26 @@ function MonthlyActivityHeatmap({ monthName, days }: { monthName: string; days: 
   const bestTier = days.reduce((max, day) => Math.max(max, day.tier), 0);
 
   return (
-    <div className="mt-3 rounded-lg border border-brand-royal/20 bg-surface-white px-2 py-2">
-      <p className="text-sm font-semibold text-text-ink mb-1.5 text-left">Daily activity</p>
-      <p className="text-[8px] text-text-muted text-center mb-1.5">50 reps lights the day.</p>
+    <div className="mt-3 rounded-lg border border-brand-royal/20 bg-surface-white px-3 py-2">
+      <p className="text-base font-semibold text-text-ink mb-1 text-left">Daily activity</p>
+      <p className="text-[10px] text-text-muted text-center mb-1">50 reps lights the day.</p>
       <div className="mb-1.5 text-center">
-        <p className="text-[9px] font-semibold text-brand-royal">{completedDays}</p>
-        <p className="text-[7px] uppercase tracking-wide text-text-muted">days</p>
+        <p className="text-[11px] font-semibold text-brand-royal leading-tight">{completedDays}</p>
+        <p className="text-[9px] uppercase tracking-wide text-text-muted leading-tight">days</p>
       </div>
 
       <div className="space-y-1.5">
         <div className="w-full min-w-0 text-center">
-          <p className="mb-1 text-[8px] font-semibold uppercase tracking-wide text-text-muted">{monthName}</p>
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-text-muted">{monthName}</p>
           <div
-            className="mx-auto grid w-fit grid-cols-8 gap-[3px]"
+            className="mx-auto grid w-fit grid-cols-8 gap-1"
             aria-label={`${monthName} daily activity heatmap`}
           >
             {days.map((day) => (
               <div
                 key={day.date}
                 title={`${day.date}: ${activityTitle(day)}`}
-                className={`flex h-3 w-3 items-center justify-center rounded-[2px] border text-[6px] font-semibold tabular-nums transition-colors ${activityColor(day.tier)}`}
+                className={`flex h-4 w-4 items-center justify-center rounded-[3px] border text-[7px] font-semibold tabular-nums transition-colors ${activityColor(day.tier)}`}
                 aria-label={`${day.date}: ${activityTitle(day)}`}
               >
                 {Number(day.date.slice(-2))}
@@ -203,17 +203,17 @@ function MonthlyActivityHeatmap({ monthName, days }: { monthName: string; days: 
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-1 text-[7px] text-text-muted">
+        <div className="flex items-center justify-center gap-1 text-[9px] text-text-muted">
           <span>Less</span>
           {[0, 1, 2, 3].map((tier) => (
-            <span key={tier} className={`h-2 w-2 rounded-[2px] border ${activityColor(tier as MonthlyActivityDay["tier"])}`} />
+            <span key={tier} className={`h-2.5 w-2.5 rounded-[3px] border ${activityColor(tier as MonthlyActivityDay["tier"])}`} />
           ))}
           <span>More</span>
         </div>
       </div>
 
       {bestTier === 0 && (
-        <p className="mt-1.5 text-center text-[8px] text-text-muted">No benchmark days logged yet.</p>
+        <p className="mt-1.5 text-center text-[10px] text-text-muted">No benchmark days logged yet.</p>
       )}
     </div>
   );
