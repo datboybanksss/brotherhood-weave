@@ -847,27 +847,48 @@ export type Database = {
           display_order: number
           id: string
           platform: string
+          platform_user_id: string | null
+          platform_username: string | null
+          submitted_url: string | null
           updated_at: string
           url: string
           user_id: string
+          verification_method: string | null
+          verification_status: string
+          verified_at: string | null
+          verified_url: string | null
         }
         Insert: {
           created_at?: string
           display_order?: number
           id?: string
           platform: string
+          platform_user_id?: string | null
+          platform_username?: string | null
+          submitted_url?: string | null
           updated_at?: string
           url: string
           user_id: string
+          verification_method?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_url?: string | null
         }
         Update: {
           created_at?: string
           display_order?: number
           id?: string
           platform?: string
+          platform_user_id?: string | null
+          platform_username?: string | null
+          submitted_url?: string | null
           updated_at?: string
           url?: string
           user_id?: string
+          verification_method?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_url?: string | null
         }
         Relationships: [
           {
@@ -1335,6 +1356,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      social_oauth_states: {
+        Row: {
+          created_at: string
+          expires_at: string
+          pkce_verifier: string | null
+          platform: string
+          state: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          pkce_verifier?: string | null
+          platform: string
+          state: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          pkce_verifier?: string | null
+          platform?: string
+          state?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       strava_connections: {
         Row: {

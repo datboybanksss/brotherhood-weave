@@ -1,116 +1,117 @@
-# Sprint Plan: Events System + Fitness Page Redesign
+# Verified Social Account Connections
 
-Combined sprint to introduce the universal `events` primitive and rebuild `/fitness` around personal stats, brotherhood activity, and upcoming events. Built in one pass to avoid a second redesign.
+Build OAuth-based ownership verification for member social links across LinkedIn, TikTok, YouTube/Google, and X. Public profiles render social icons only after verification, and only ever render the **provider-derived canonical URL** — never the user-submitted string.
 
-## Confirmations
+## 1. Database (migration)
 
-1. **Calendar** — custom mobile grid (date-fns + divs, ~40 lines). No new library.
-2. **Activity feed** — composed client-side from existing `workouts` + `submissions` tables. NO new `activity_log` table. Streak/leaderboard milestones derived virtually from current data.
-3. **Archives extension** — adding `'event_recap'` to the `content_type` CHECK and a nullable `event_id` column is non-destructive. Existing rows keep their values; new constraint `content_type != 'event_recap' OR event_id IS NOT NULL` only affects new/changed rows.
-4. **FAB** — fixed bottom-right with `bottom: calc(4rem + env(safe-area-inset-bottom) + 1rem)`, z-index above BottomTabNav (z-50), respects iOS safe area.
-5. **RecentRunsFeed audit** — used only by `Fitness.tsx` (the soon-to-be-replaced runs card). NOT used by `CollectiveChallengeCard` (that one renders `CircularProgress` only). Safe to repurpose into the brotherhood feed.
+Add to `member_social_links` (idempotent `ADD COLUMN IF NOT EXISTS`):
 
----
+- `submitted_url text` — backfilled from existing `url`; stores whatever the user typed. Never shown publicly.
+- `verified_url text` — canonical URL built from provider data. The only field rendered publicly.
+- `verification_status text not null default 'unverified'` — check constraint: `unverified | pending | verified | pending_manual_review | failed`
+- `verification_method text` (`'oauth'` for now)
+- `platform_user_id text`
+- `platform_username text`
+- `verified_at timestamptz`
 
-## Task 1 — Data model (single migration)
+(Keep existing `url` column as the editor's working value, but treat `submitted_url` as the source of truth for what the user entered.)
 
-**New table `events`** — id, title, description (markdown ≤5000), category (fitness|brotherhood_meeting|social|founder_call|workshop|other), format (in_person|remote|hybrid), location, starts_at, ends_at (≥starts_at), cover_url, is_published, created_by, created_at, updated_at. Indexes on starts_at, (category, starts_at), (is_published, starts_at). Trigger to bump updated_at.
+New table `social_oauth_states` (server-only, RLS deny-all to authenticated; service role writes):
 
-RLS: SELECT for paid members where published OR admin; INSERT/UPDATE/DELETE admin-only.
+- `state text primary key`, `user_id uuid`, `platform text`, `pkce_verifier text`, `created_at`, `expires_at` (10 min TTL)
 
-**New table `event_rsvps`** — id, event_id (cascade), user_id (cascade), status (going_in_person|going_remote|not_going), responded_at. UNIQUE (event_id, user_id). Indexes on event_id and (user_id, event_id).
+Tighten RLS on `member_social_links`:
 
-RLS: SELECT all paid members; INSERT/UPDATE only own; DELETE own or admin. BEFORE INSERT trigger forces `user_id := auth.uid()`.
+- Owner: full read/write on own rows (so they see Pending / Failed / Pending review in the editor).
+- Other paid members: SELECT only rows where `verification_status = 'verified' AND verified_at IS NOT NULL AND verified_url IS NOT NULL`.
 
-**Alter `archives`** — add `event_id uuid` nullable references events(id) ON DELETE SET NULL. Drop and recreate content_type CHECK to include `'event_recap'`. Add CHECK `content_type != 'event_recap' OR event_id IS NOT NULL`.
+## 2. Verification rule (critical)
 
-**Storage bucket `event-covers`** — public, 5MB, image mimes. INSERT/DELETE admin-only via storage.objects policy.
+A row is publicly visible **only** when all of:
 
-**Helper SECURITY DEFINER functions**:
-- `get_upcoming_events(category_filter text, limit_n int)` — published + future, optional category filter.
-- `get_event_rsvp_summary(event_id uuid)` — counts per status.
-- `get_my_rsvp(event_id uuid)` — caller's status or null.
-- `get_user_monthly_stats_with_delta(_user_id, month_start)` — extends existing stats with month-over-month percentage.
+1. `verification_status = 'verified'`
+2. `verified_at IS NOT NULL`
+3. `verified_url IS NOT NULL` (always provider-derived)
 
----
+In `social-oauth-callback`:
 
-## Task 2 — Admin event management
+- Build `verified_url` from provider data using a per-platform canonical formatter (e.g. `https://www.linkedin.com/in/<vanityName>`, `https://www.tiktok.com/@<username>`, `https://www.youtube.com/@<handle>`, `https://x.com/<username>`).
+- If the provider does **not** return enough data to construct a canonical public URL/handle (e.g. LinkedIn OIDC returns no vanity, YouTube returns no custom handle, TikTok returns only `open_id`):
+  - Set `verification_status = 'pending_manual_review'`
+  - Leave `verified_url = NULL`
+  - Store whatever IDs we did get (`platform_user_id`, `platform_username` if any) for admin review.
+  - Row stays hidden from public profiles.
+- If the provider does return a canonical handle/URL:
+  - Compare to user's `submitted_url` (normalized). If they match, mark `verified` with `verified_url` set to the canonical form.
+  - If they don't match, **replace** — `verified_url` = canonical form (do not require user resubmit). Status = `verified`.
+- Public profile component reads only `verified_url`. Never falls back to `submitted_url` / `url`.
 
-Files:
-- `src/api/admin-events.ts` — list (upcoming/past), create, update, delete.
-- `src/pages/admin/Events.tsx` — header + Tabs (Upcoming | Past) + new event button.
-- `src/components/admin/EventsList.tsx`, `EventRow.tsx` — row with category/format badges, relative time, RSVP summary, Edit/Delete/View/Add Recap actions.
-- `src/components/admin/EventForm.tsx` — RHF + zod, cover upload to event-covers, location placeholder shifts by format.
-- Modify `src/pages/admin/ArchiveForm.tsx` — accept `?eventId=` and `?mode=event_recap` search params; lock content_type, prefill title from event, set domain by category.
-- Modify `src/components/me/AdminLink.tsx` (or AdminSection) — add "Admin: Events" link.
-- Register routes in `src/App.tsx`: `/admin/events`, `/admin/events/new`, `/admin/events/:id/edit`.
+## 3. Edge functions
 
-"Add Recap" links to `/admin/archives/new?mode=event_recap&eventId=:id`.
+### `social-oauth-start` (verify_jwt = true)
+- Validates JWT, reads `?platform=` (linkedin | tiktok | youtube | x).
+- Generates `state` (32-byte base64url) and PKCE `code_verifier`/`code_challenge` (S256) where required.
+- Inserts row into `social_oauth_states` (service role).
+- Builds provider authorize URL with least-privilege scopes:
+  - LinkedIn: `openid profile`
+  - TikTok: `user.info.basic` (PKCE)
+  - Google/YouTube: `openid profile https://www.googleapis.com/auth/youtube.readonly`
+  - X: `users.read tweet.read` (PKCE required, confidential client)
+- Returns `{ url }`; frontend does `window.location.assign(url)`.
 
----
+### `social-oauth-callback` (verify_jwt = false)
+- Reads `code` + `state`. Looks up + deletes state row; rejects if missing/expired.
+- Exchanges code for access token (with PKCE verifier where required).
+- Fetches profile:
+  - LinkedIn: `GET /v2/userinfo` → `sub`, `name`. (No vanity URL → `pending_manual_review`.)
+  - TikTok: `GET /v2/user/info/?fields=open_id,union_id,display_name,profile_deep_link` → use `profile_deep_link` if present as `verified_url`, else `pending_manual_review`.
+  - Google/YouTube: `GET /oauth2/v3/userinfo` then `youtube/v3/channels?mine=true&part=snippet` → use channel `customUrl` (`@handle`) if present; otherwise `pending_manual_review` (channel ID URL is not a "handle").
+  - X: `GET /2/users/me?user.fields=username` → `https://x.com/<username>`.
+- Upserts `member_social_links` row per the verification rule above.
+- Discards access/refresh tokens (not stored).
+- Redirects: success → `${SITE_URL}/account?social_verified=<platform>`; failure → `${SITE_URL}/account?social_error=<platform>&reason=<short>`; manual review → `${SITE_URL}/account?social_pending=<platform>`.
 
-## Task 3 — Event detail page `/events/:id`
+Provider callback URL (register exactly this in every provider console):
+`https://zsmkhndwoxhwasrlzeox.supabase.co/functions/v1/social-oauth-callback`
 
-Files:
-- `src/pages/EventDetail.tsx` — composes hero, header, RSVP, body, attendees, post-event sections.
-- `src/components/events/EventHero.tsx` — 16:9 cover or category-color placeholder + badges.
-- `src/components/events/EventRSVPButtons.tsx` — renders 2 or 3 buttons by format; tap selected again clears.
-- `src/components/events/EventAttendeesSection.tsx` — uses existing `AvatarStack`, links to `/member/:id`.
-- `src/components/events/EventActivitySection.tsx` — fitness category & past: queries `workouts` + `submissions` on event date, max 20 + View all.
-- `src/components/events/EventRecapSection.tsx` — looks up archive by event_id; renders inline + link to `/library/archive/:id`.
-- `src/api/events.ts` — getEventById, getMyRSVP, setRSVP, clearRSVP, getEventActivity, getEventRecap, getEventRsvpSummary, getEventAttendees.
-- `src/hooks/useEvent.ts`, `useMyRSVP.ts`, `useEventAttendees.ts`.
-- Add `<Route path="/events/:id" element={<EventDetail />} />` inside `<PaidLayout>` in `src/App.tsx`.
+## 4. Frontend
 
----
+**`EditProfileForm.tsx`**
+- Each selected platform row shows a status pill: Unverified (gray) / Pending (amber) / Verified (green check) / Pending review (amber, "We'll confirm shortly") / Failed (red).
+- `Verify` button per supported provider (hidden once `verified`). Click → invoke `social-oauth-start`, redirect to returned URL, set local status to Pending.
+- Editing the URL field after verification resets that row to `unverified` (and clears `verified_url`) on save.
+- On `/account` mount, read `?social_verified` / `?social_error` / `?social_pending`, toast result, invalidate `memberSocialLinks` query, strip params from URL.
 
-## Task 4 — Communities Events layer
+**Public profile (`MemberContactActions.tsx` / wherever socials render)**
+- Filter strictly: `verification_status === 'verified' && verified_at && verified_url`.
+- Render between "Member since…" and the Message button as a centered row of 40×40 circular icon buttons styled with `border-brand-royal/30 bg-brand-royal-tint/40 hover:bg-brand-royal-tint`, lucide icons (`Linkedin`, `Music2` for TikTok, `Youtube`, `Twitter` for X).
+- `href` is always `verified_url`. Submitted URL is never linked publicly.
 
-Files:
-- Modify `src/pages/Communities.tsx` — wrap in shadcn Tabs (`?layer=channels|events`), default channels.
-- `src/components/communities/EventsLayer.tsx` — Upcoming + Calendar sections.
-- `src/components/communities/UpcomingEventsList.tsx`, `UpcomingEventRow.tsx` — top 5 + expandable.
-- `src/components/communities/EventsCalendar.tsx` — custom mobile month grid using date-fns; prev/next/today; dot per event color-coded by category.
-- `src/components/communities/CalendarDay.tsx` — single cell.
-- `src/components/communities/DayEventsSheet.tsx` — shadcn Sheet listing events for the tapped day.
-- `src/api/community-events.ts` — getUpcomingEvents, getEventsForMonth.
-- `src/hooks/useUpcomingEvents.ts`, `useEventsForMonth.ts`.
+## 5. Secrets I need from you
 
----
+I'll prompt with the secrets tool once you confirm. Sources:
 
-## Task 5 — Fitness page full rewrite
+| Secret | Where to get it |
+|---|---|
+| `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET` | linkedin.com/developers → create app → enable "Sign In with LinkedIn using OpenID Connect". |
+| `TIKTOK_CLIENT_KEY` / `TIKTOK_CLIENT_SECRET` | developers.tiktok.com → Manage apps → Login Kit, request `user.info.basic`. |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | console.cloud.google.com → Credentials → OAuth 2.0 Web Client. Enable YouTube Data API v3. |
+| `X_CLIENT_ID` / `X_CLIENT_SECRET` | developer.x.com → User authentication settings → OAuth 2.0, **Confidential client**, scopes `users.read tweet.read`. |
+| `SITE_URL` | e.g. `https://familyt1es.lovable.app` (or your custom domain). |
+| `SOCIAL_OAUTH_CALLBACK_URL` | `https://zsmkhndwoxhwasrlzeox.supabase.co/functions/v1/social-oauth-callback` — register this exact URL in every provider console. |
 
-Files:
-- Rewrite `src/pages/Fitness.tsx` — vertical stack: PersonalStatsHero → BrotherhoodActivityFeed → CompactLeaderboard → UpcomingFitnessEvents → ForfeitWatchlist (Wed–Sat only) → PoweredByStrava. FAB rendered as sibling.
-- `src/components/fitness/PersonalStatsHero.tsx` — avatar, three stat tiles (reps, submissions, weekly streak), MoM delta line.
-- `src/components/fitness/BrotherhoodActivityFeed.tsx` — merged feed row component.
-- `src/components/fitness/ActivityFeedRow.tsx` — single row UI.
-- `src/components/fitness/CompactLeaderboard.tsx` — top 5 + sticky-highlight current user if outside.
-- `src/components/fitness/UpcomingFitnessEvents.tsx` — next 3 fitness events with RSVP indicator.
-- `src/components/fitness/LogActivityFAB.tsx` — fixed bottom-right, above BottomTabNav, safe-area aware, opens existing `LogActivityDialog`.
-- `src/components/fitness/PoweredByStrava.tsx` — official logo + link to strava.com (target=_blank, rel=noopener).
-- `src/hooks/useBrotherhoodFeed.ts` — fetch last 50 workouts + 50 submissions, merge, sort, slice 30, with "load more".
-- `public/strava-logo.svg` — official Strava orange "Powered by Strava" logomark.
-- Modify `src/components/fitness/ForfeitWatchlist.tsx` to early-return null Sun–Tue SAST (gating moved from Fitness page so any future caller is also gated).
+TikTok and X also require a published privacy policy / terms URL before going live.
 
-Components removed from Fitness page: existing "Log activity" hero card, full leaderboard card, "Latest runs" card. Kept components: `LogActivityDialog`, `MyRecentSubmissions`, `MonthlyLeaderboard` (data hook reused), `ForfeitWatchlist`.
+## 6. Order of execution after approval
 
----
+1. Run migration (new columns + state table + tightened RLS + check constraint).
+2. You add the secrets above.
+3. Deploy `social-oauth-start` and `social-oauth-callback`.
+4. Update `EditProfileForm` + public profile UI to honor the verified-only rule.
+5. End-to-end smoke test per provider.
 
-## Task 6 — Smoke tests
+## Non-goals
 
-Verify all 13 flows from the prompt (create event, RSVP remote/hybrid, Communities Events layer + calendar, Fitness upcoming events, personal stats, brotherhood feed, sticky FAB, forfeit gating, Powered by Strava, recap creation, past activity, RLS attacks).
-
----
-
-## Constraints honored
-
-- All new components ≤50 lines.
-- No try/catch.
-- No edits to `src/components/ui/`.
-- RSVP user_id forced server-side via trigger.
-- Forfeit watchlist hidden Sun–Tue (SAST).
-- Custom calendar (no library).
-- Activity feed merges existing tables only.
-- FAB respects `env(safe-area-inset-bottom)` and sits above BottomTabNav (z-50+).
-- Events display in user local TZ; SAST only used for forfeit gating.
+- Instagram (Meta Basic Display deprecated; Graph API requires business review).
+- Token storage beyond the handshake — access/refresh tokens are discarded.
+- Admin manual-review UI for `pending_manual_review` rows in this pass (data is captured; UI can come later).
