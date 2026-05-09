@@ -72,6 +72,14 @@ export default function Login() {
           </Link>
           .
         </p>
+        <div className="flex justify-center gap-4 text-xs text-muted-foreground">
+          <Link to="/support" className="font-medium text-brand-royal underline">
+            Support
+          </Link>
+          <Link to="/account-deletion" className="font-medium text-brand-royal underline">
+            Delete account
+          </Link>
+        </div>
       </div>
     </div>
   );

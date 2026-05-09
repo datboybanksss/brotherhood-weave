@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, PlayCircle } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowLeft, LifeBuoy, LockKeyhole, PlayCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -77,6 +77,7 @@ export default function Account() {
             <PlayCircle className="mr-2 h-4 w-4" /> Rewatch onboarding video
           </Button>
         )}
+        <AccountHelpLinks />
         <DangerZone />
       </div>
       <OnboardingModal
@@ -85,5 +86,27 @@ export default function Account() {
         showCompleteButton={false}
       />
     </div>
+  );
+}
+
+function AccountHelpLinks() {
+  return (
+    <section className="rounded-lg border border-brand-royal/20 bg-card p-4">
+      <h2 className="text-sm font-semibold text-foreground">Account support</h2>
+      <div className="mt-3 grid gap-2 text-sm">
+        <Link to="/privacy-choices" className="inline-flex items-center gap-2 text-brand-royal underline">
+          <LockKeyhole className="h-4 w-4" />
+          Privacy choices
+        </Link>
+        <Link to="/account-deletion" className="inline-flex items-center gap-2 text-brand-royal underline">
+          <Trash2 className="h-4 w-4" />
+          Account deletion information
+        </Link>
+        <Link to="/support" className="inline-flex items-center gap-2 text-brand-royal underline">
+          <LifeBuoy className="h-4 w-4" />
+          Support and safety reports
+        </Link>
+      </div>
+    </section>
   );
 }

@@ -39,6 +39,7 @@ import EventForm from "@/components/admin/EventForm";
 import AuthCallback from "@/pages/AuthCallback";
 import InviteRedemption from "@/pages/InviteRedemption";
 import Legal from "@/pages/Legal";
+import PublicReadiness from "@/pages/PublicReadiness";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,10 @@ const App = () => (
             <Route path="/legal" element={<Legal />} />
             <Route path="/privacy" element={<Legal />} />
             <Route path="/terms" element={<Legal />} />
+            <Route path="/account-deletion" element={<PublicReadiness />} />
+            <Route path="/privacy-choices" element={<PublicReadiness />} />
+            <Route path="/support" element={<PublicReadiness />} />
+            <Route path="/community-guidelines" element={<PublicReadiness />} />
             <Route element={<RouteGuard />}>
               <Route path="/" element={<Navigate to="/home" replace />} />
               <Route path="/signup" element={<Signup />} />

@@ -105,6 +105,14 @@ export default function Signup() {
             Agree to the Terms and Privacy Policy to continue with Google.
           </p>
         )}
+        <div className="flex justify-center gap-4 text-xs text-muted-foreground">
+          <Link to="/support" className="font-medium text-brand-royal underline">
+            Support
+          </Link>
+          <Link to="/privacy-choices" className="font-medium text-brand-royal underline">
+            Privacy choices
+          </Link>
+        </div>
       </div>
     </div>
   );

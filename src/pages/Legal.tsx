@@ -94,6 +94,18 @@ export default function Legal() {
               <FileText className="h-4 w-4" />
               POPIA
             </a>
+            <Link
+              to="/privacy-choices"
+              className="inline-flex items-center gap-2 rounded-full border border-brand-royal/25 bg-brand-royal-tint/50 px-4 py-2 text-sm font-semibold text-brand-royal"
+            >
+              Privacy choices
+            </Link>
+            <Link
+              to="/account-deletion"
+              className="inline-flex items-center gap-2 rounded-full border border-brand-royal/25 bg-brand-royal-tint/50 px-4 py-2 text-sm font-semibold text-brand-royal"
+            >
+              Account deletion
+            </Link>
           </div>
           <p className="text-xs text-muted-foreground">Effective date: {effectiveDate}</p>
         </header>
@@ -169,6 +181,13 @@ export default function Legal() {
               protect the platform. Some content may remain in backups or logs for a limited period after
               deletion. Members can request access, correction, deletion, or restriction where applicable.
             </p>
+            <p>
+              Account deletion requests can be started from Account settings or through the public{" "}
+              <Link className="font-medium text-brand-royal underline" to="/account-deletion">
+                account deletion page
+              </Link>
+              .
+            </p>
           </PolicyBlock>
 
           <PolicyBlock title="8. Security">
@@ -189,6 +208,17 @@ export default function Legal() {
               </a>
               . Members can also contact an administrator through the platform if they need help with account
               information, visibility settings, or removal requests.
+            </p>
+            <p>
+              Privacy choices are available at{" "}
+              <Link className="font-medium text-brand-royal underline" to="/privacy-choices">
+                /privacy-choices
+              </Link>
+              . Support and safety reports can be sent through{" "}
+              <Link className="font-medium text-brand-royal underline" to="/support">
+                /support
+              </Link>
+              .
             </p>
           </PolicyBlock>
         </Section>
@@ -211,6 +241,13 @@ export default function Legal() {
                 "Do not share private community content outside Family Ties unless you have permission from the people involved.",
               ]}
             />
+            <p>
+              The community standards are also available at{" "}
+              <Link className="font-medium text-brand-royal underline" to="/community-guidelines">
+                /community-guidelines
+              </Link>
+              .
+            </p>
           </PolicyBlock>
 
           <PolicyBlock title="3. Fitness and accountability features">
