@@ -134,7 +134,7 @@ export default function FitnessHero() {
             {movedCount} {movedCount === 1 ? "brother has" : "brothers have"} moved today. {isDoneToday ? "You're in." : "You haven't."}
           </p>
           <p className="text-[11px] text-text-muted mt-0.5">
-            {isDoneToday ? "Your name is off today's pressure list." : "One quick log changes the whole signal."}
+            {isDoneToday ? "Your name is off today's pressure list." : "Is that your standard?"}
           </p>
         </div>
       </div>
