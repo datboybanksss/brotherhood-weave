@@ -1,9 +1,13 @@
 // Visibility-aware submissions reader: returns rows + signed URLs only when allowed.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { corsHeaders } from 'jsr:@supabase/supabase-js@2/cors';
 
 const BUCKET = 'fitness-videos';
 const SIGN_TTL = 60 * 60; // 1h
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -15,18 +19,19 @@ Deno.serve(async (req) => {
     });
   }
 
+  const jwt = auth.replace('Bearer ', '');
   const userClient = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_ANON_KEY')!,
     { global: { headers: { Authorization: auth } } },
   );
-  const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(auth.replace('Bearer ', ''));
-  if (claimsErr || !claimsData?.claims?.sub) {
+  const { data: { user }, error: userErr } = await userClient.auth.getUser(jwt);
+  if (userErr || !user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
-  const viewerId = claimsData.claims.sub as string;
+  const viewerId = user.id;
 
   const body = await req.json().catch(() => ({}));
   const targetUserId: string | undefined = body.user_id;

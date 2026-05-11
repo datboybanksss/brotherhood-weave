@@ -1,7 +1,11 @@
 // Manual fallback: pull recent activities since the connection was made.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { corsHeaders } from 'jsr:@supabase/supabase-js@2/cors';
 import { getValidStravaToken, importStravaActivity } from '../_shared/strava.ts';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -12,18 +16,19 @@ Deno.serve(async (req) => {
       status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
+  const jwt = auth.replace('Bearer ', '');
   const userClient = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_ANON_KEY')!,
     { global: { headers: { Authorization: auth } } },
   );
-  const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(auth.replace('Bearer ', ''));
-  if (claimsErr || !claimsData?.claims?.sub) {
+  const { data: { user }, error: userErr } = await userClient.auth.getUser(jwt);
+  if (userErr || !user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
-  const userId = claimsData.claims.sub;
+  const userId = user.id;
 
   const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
   const { data: conn } = await admin.from('strava_connections').select('connected_at').eq('user_id', userId).maybeSingle();

@@ -51,10 +51,10 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
     const jwt = authHeader.replace("Bearer ", "");
-    const { data: claimsData } = await anonClient.auth.getClaims(jwt);
-    if (claimsData?.claims) {
-      userId = claimsData.claims.sub as string;
-      userEmail = (claimsData.claims.email as string) ?? null;
+    const { data: { user: sessionUser } } = await anonClient.auth.getUser(jwt);
+    if (sessionUser) {
+      userId = sessionUser.id;
+      userEmail = sessionUser.email ?? null;
     }
   }
 

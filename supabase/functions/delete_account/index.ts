@@ -28,15 +28,15 @@ Deno.serve(async (req) => {
   });
 
   const token = authHeader.replace("Bearer ", "");
-  const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
-  if (claimsError || !claimsData?.claims) {
+  const { data: { user: authedUser }, error: userErr } = await anonClient.auth.getUser(token);
+  if (userErr || !authedUser) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
-  const userId = claimsData.claims.sub as string;
+  const userId = authedUser.id;
 
   // Use service role to delete the auth user (cascades to public.users via FK)
   const adminClient = createClient(supabaseUrl, serviceRoleKey);

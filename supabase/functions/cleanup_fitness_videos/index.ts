@@ -1,7 +1,11 @@
 // Daily cleanup: (A) null video_url + delete files for 90-day-expired submissions,
 // (B) sweep orphan files in fitness-videos with no matching submissions row.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { corsHeaders } from 'jsr:@supabase/supabase-js@2/cors';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 const BUCKET = 'fitness-videos';
 
