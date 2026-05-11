@@ -1,7 +1,7 @@
 // Public endpoint (no JWT) — Strava redirects here after the user authorizes.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-const FRONTEND_URL = Deno.env.get('PUBLIC_SITE_URL') ?? 'https://brotherhood-weave.lovable.app';
+const FRONTEND_URL = Deno.env.get('PUBLIC_SITE_URL') ?? 'http://localhost:5173';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function redirect(params: Record<string, string>) {
