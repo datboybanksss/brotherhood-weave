@@ -85,7 +85,7 @@ export default function FitnessHero() {
   const movedCount = todayMovers.size + (!loggedToday && hasRecentToday && user?.id ? 1 : 0);
 
   return (
-    <section className="relative -mx-4 px-4 pt-5 pb-5 mb-3 border-b border-stroke-hairline bg-surface-white">
+    <section className="relative -mx-4 px-4 pt-5 pb-5 mb-3 border-b border-stroke-hairline bg-background">
       <div className="flex items-center gap-3 mb-5">
         <Avatar userId={user?.id ?? ""} size="md" showStatus={false} />
         <div className="flex-1 min-w-0">
@@ -175,7 +175,7 @@ function MonthlyActivityHeatmap({ monthName, days }: { monthName: string; days: 
   const bestTier = days.reduce((max, day) => Math.max(max, day.tier), 0);
 
   return (
-    <div className="mt-3 rounded-lg border border-brand-royal/20 bg-surface-white px-3 py-2">
+    <div className="mt-3 rounded-lg border border-brand-royal/20 bg-surface-white px-3 py-2 dark:border-brand-royal/35">
       <p className="text-base font-semibold text-text-ink mb-1 text-center">Daily activity</p>
       <p className="text-[10px] text-text-muted text-center mb-1">50 reps lights the day.</p>
       <div className="mb-1.5 text-center">
@@ -222,13 +222,13 @@ function MonthlyActivityHeatmap({ monthName, days }: { monthName: string; days: 
 function activityColor(tier: MonthlyActivityDay["tier"]) {
   switch (tier) {
     case 3:
-      return "border-brand-royal bg-brand-royal text-white";
+      return "border-brand-royal bg-brand-royal text-white dark:border-[#7D8CFF] dark:bg-[#4B55FF] dark:text-white";
     case 2:
-      return "border-brand-royal/50 bg-brand-royal/70 text-white";
+      return "border-brand-royal/50 bg-brand-royal/70 text-white dark:border-[#6FA8FF] dark:bg-[#276DD8] dark:text-white";
     case 1:
-      return "border-sky-300 bg-sky-200 text-brand-royal";
+      return "border-sky-300 bg-sky-200 text-brand-royal dark:border-[#8BE6FF] dark:bg-[#7DDCFF] dark:text-[#061A40]";
     default:
-      return "border-stroke-hairline bg-surface-muted text-text-muted";
+      return "border-stroke-hairline bg-surface-muted text-text-muted dark:border-[#34405A] dark:bg-[#172033] dark:text-[#D0D7E8]";
   }
 }
 

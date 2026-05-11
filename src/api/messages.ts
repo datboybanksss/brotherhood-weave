@@ -60,9 +60,9 @@ export async function sendMessage(
   senderId: string,
   options?: SendOptions,
 ): Promise<MessageRow> {
-  const trimmedBody = body.trim();
-  if (!trimmedBody) {
-    throw new Error("Message body is required");
+  const trimmedBody = body.trim() || null;
+  if (!trimmedBody && !options?.attachmentUrl) {
+    throw new Error("Message must have a body or attachment");
   }
 
   const insert: MessageInsert = {
