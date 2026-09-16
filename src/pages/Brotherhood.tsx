@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import DepartmentFilterBar from "@/components/brotherhood/DepartmentFilterBar";
 import MemberRow from "@/components/brotherhood/MemberRow";
 import FounderCarousel from "@/components/brotherhood/FounderCarousel";
+import { founderCards } from "@/config/founderCards";
 
 export default function Brotherhood() {
   const [search, setSearch] = useState("");
@@ -28,7 +29,8 @@ export default function Brotherhood() {
       ?.find(d => d.is_primary);
 
   const founders = (members ?? [])
-    .filter(m => m.is_admin);
+    .filter(m => m.is_admin)
+    .map(m => ({ ...m, ...founderCards[m.full_name] }));
 
   const recentMembers = [...(members ?? [])]
     .filter(m => !m.is_admin)

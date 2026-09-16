@@ -7,7 +7,10 @@ interface Founder {
   full_name: string;
   avatar_url: string | null;
   title: string | null;
-
+  cardImageUrl?: string;
+  avatarScale?: number;
+  avatarObjectPosition?: string;
+  avatarTransformOrigin?: string;
 }
 
 export default function FounderCarousel({ founders }: { founders: Founder[] }) {
@@ -34,11 +37,21 @@ export default function FounderCarousel({ founders }: { founders: Founder[] }) {
           {founders.map(founder => (
             <div key={founder.id} className="w-full shrink-0 flex justify-center px-4">
               <ProfileCard
-                userId={founder.id}
                 name={founder.full_name}
                 title="Co-founder"
+                handle={founder.full_name.toLowerCase().replace(/\s+/g, '.')}
+                status="Co-founder"
+                avatarUrl={founder.cardImageUrl ?? founder.avatar_url ?? ''}
+                miniAvatarUrl={founder.avatar_url ?? undefined}
                 contactText="View Profile"
                 onContactClick={() => navigate(`/member/${founder.id}`)}
+                enableTilt
+                enableMobileTilt={false}
+                behindGlowEnabled={false}
+                innerGradient="linear-gradient(145deg,#1512D366 0%,#7B9FFF33 100%)"
+                avatarScale={founder.avatarScale}
+                avatarObjectPosition={founder.avatarObjectPosition}
+                avatarTransformOrigin={founder.avatarTransformOrigin}
               />
             </div>
           ))}

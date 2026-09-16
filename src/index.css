@@ -10,7 +10,6 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --avatar-presence: #22c55e;
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 

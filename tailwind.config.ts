@@ -82,6 +82,11 @@ export default {
           warning: '#9C6B0A',
           danger: '#A02A2A',
         },
+        tier: {
+          foundation: '#9CA3AF',
+          thinker: '#7B9FFF',
+          founding: '#1512D3',
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
