@@ -17,10 +17,10 @@ export default function TierBadge({ tierId }: TierBadgeProps) {
       if (error) throw error;
       return data;
     },
-    staleTime: 10 * 60_000,
+    staleTime: 5 * 60_000,
   });
 
-  if (!data) return null;
+  if (!data?.ring_color) return null;
 
   return (
     <span

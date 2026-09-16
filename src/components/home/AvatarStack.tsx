@@ -7,18 +7,11 @@ interface AvatarStackProps {
 }
 
 export default function AvatarStack({ userIds, max = 5, totalCount }: AvatarStackProps) {
-  const visible = userIds.slice(0, max);
+  const visible = userIds.slice(0, Math.max(0, max));
   const total = totalCount ?? userIds.length;
   const remaining = total - visible.length;
-  // Avatar md: 40 + ring(2)*2 + gap(4) = 48px container, overlap 12px
   const overlap = 18;
-  const tile = 48;
-  // Cut a circle out of the right side of each non-last avatar so the next
-  // avatar's ring doesn't overlay the previous one's ring.
-  const cutRadius = tile / 2 + 1;
-  const cutCx = tile - overlap + tile / 2;
-  const cutCy = tile / 2;
-  const mask = `radial-gradient(circle ${cutRadius}px at ${cutCx}px ${cutCy}px, transparent 99%, black 100%)`;
+  const mask = "radial-gradient(circle 25px at 54px 24px, transparent 99%, black 100%)";
 
   return (
     <div className="flex items-center">
@@ -27,7 +20,7 @@ export default function AvatarStack({ userIds, max = 5, totalCount }: AvatarStac
         return (
           <div
             key={id}
-            className="rounded-full"
+            className="rounded-full shrink-0"
             style={{
               marginLeft: i === 0 ? 0 : -overlap,
               WebkitMaskImage: !isLast ? mask : undefined,

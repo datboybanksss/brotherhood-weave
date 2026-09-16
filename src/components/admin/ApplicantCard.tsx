@@ -1,3 +1,4 @@
+import Avatar from "@/components/Avatar";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow, format } from "date-fns";
@@ -38,11 +39,9 @@ export default function ApplicantCard({ applicant }: { applicant: PendingApplica
     },
   });
 
-  const avatarUrl = applicant.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(applicant.full_name)}`;
-
   return (
     <div className="flex items-center gap-3 rounded-lg border border-border p-3">
-      <img src={avatarUrl} alt={applicant.full_name} className="h-10 w-10 rounded-full bg-muted" />
+      <Avatar userId={applicant.id} size="md" showStatus={false} />
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-sm text-foreground truncate">{applicant.full_name}</p>
         <p className="text-xs text-muted-foreground truncate">{applicant.email}</p>

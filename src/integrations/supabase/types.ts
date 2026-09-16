@@ -1942,6 +1942,16 @@ export type Database = {
       }
     }
     Functions: {
+      active_avatar_members: {
+        Args: never
+        Returns: {
+          id: string
+          full_name: string
+          avatar_url: string | null
+          last_seen_at: string | null
+          tier_id: string | null
+        }[]
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
