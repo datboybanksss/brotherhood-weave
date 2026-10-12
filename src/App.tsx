@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import RouteGuard from "@/components/RouteGuard";
 import PaidLayout from "@/components/PaidLayout";
+import Apply from "@/pages/Apply";
 import Signup from "@/pages/Signup";
 import Login from "@/pages/Login";
 import Interview from "@/pages/Interview";
@@ -51,6 +52,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            <Route path="/apply" element={<Apply />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/invite/:token" element={<InviteRedemption />} />
             <Route path="/legal" element={<Legal />} />

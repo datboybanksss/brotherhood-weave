@@ -57,7 +57,7 @@ export default function Login() {
           </Button>
         </form>
         <p className="text-sm text-center text-muted-foreground">
-          New here? <Link to="/signup" className="text-primary underline">Sign up</Link>
+          New here? <Link to="/apply" className="text-primary underline">Apply for membership</Link>
         </p>
         <AuthDivider />
         <GoogleSignInButton />

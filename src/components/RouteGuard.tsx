@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { supabase } from "@/lib/supabase";
+import { useApplication } from "@/hooks/useApplication";
 import { toast } from "sonner";
 
 const PUBLIC_PATHS = ["/login", "/signup"];
@@ -11,6 +11,7 @@ export default function RouteGuard() {
   const { user, loading: authLoading } = useAuth();
   const { data: appUser, isLoading: userLoading } = useCurrentUser();
   const location = useLocation();
+  const application = useApplication(user?.id);
 
   if (authLoading || (user && userLoading)) {
     return (
@@ -28,9 +29,7 @@ export default function RouteGuard() {
   if (!appUser) return null;
 
   if (appUser.rejected_at) {
-    supabase.auth.signOut();
-    toast.error("Your application was not approved at this time.");
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/apply" replace />;
   }
 
   // Always-allowed routes for any authenticated user
@@ -46,6 +45,12 @@ export default function RouteGuard() {
       return <Navigate to="/home" replace />;
     }
     return <Outlet />;
+  }
+
+  // Collect a real application before the interview; approved and paid members keep access.
+  if (!isPaid && !interviewDone) {
+    if (application.isLoading) return <p className="p-6">Loading application…</p>;
+    if (application.isError || !application.data) return <Navigate to="/apply" replace />;
   }
 
   // State 1: pre-payment

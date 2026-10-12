@@ -38,7 +38,7 @@ export default function Signup() {
 
   const onSubmit = async (data: FormData) => {
     console.log("Signing up:", data.email);
-    const { error } = await supabase.auth.signUp({
+    const { data: result, error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: { data: { full_name: data.full_name } },
@@ -47,14 +47,20 @@ export default function Signup() {
       toast.error(error.message);
       return;
     }
-    toast.success("Account created!");
-    navigate("/interview");
+    if (!result.session) {
+      toast.success("Check your email to confirm your account, then sign in to complete your application.");
+      navigate("/login");
+      return;
+    }
+    toast.success("Account created! Tell us about yourself next.");
+    navigate("/apply");
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-sm space-y-6">
-        <h1 className="text-2xl font-bold text-foreground text-center">Join Family Ties</h1>
+        <h1 className="text-2xl font-bold text-foreground text-center">Start your application</h1>
+        <p className="text-center text-sm text-muted-foreground">Create an account to introduce yourself and track your application.</p>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="full_name">Full Name</Label>
