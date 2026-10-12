@@ -18,7 +18,7 @@ export default function ApproveDialog({ name, open, onOpenChange, onConfirm, loa
         <AlertDialogHeader>
           <AlertDialogTitle>Approve {name}?</AlertDialogTitle>
           <AlertDialogDescription>
-            Confirm that you have verified this existing member, or completed the meeting for a new applicant. Approval grants full member access.
+            They will receive access to the payment step.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -35,9 +35,3 @@ verify_jwt = true
 
 [functions.strava_initiate_oauth]
 verify_jwt = true
-
-[auth]
-enable_signup = true
-
-[functions.redeem_invitation]
-verify_jwt = false

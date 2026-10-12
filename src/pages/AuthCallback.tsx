@@ -53,9 +53,9 @@ export default function AuthCallback() {
       sessionStorage.removeItem("post_oauth_redirect");
 
       if (appUser?.payment_status === "paid") {
-        navigate(redirectOverride ?? "/app", { replace: true });
+        navigate(redirectOverride ?? "/home", { replace: true });
       } else {
-        navigate("/pending", { replace: true });
+        navigate("/interview", { replace: true });
       }
     })();
     return () => { cancelled = true; };

@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 const PUBLIC_PATHS = ["/login", "/signup"];
@@ -8,7 +9,7 @@ const ALWAYS_ALLOWED_AUTHENTICATED = ["/account"];
 
 export default function RouteGuard() {
   const { user, loading: authLoading } = useAuth();
-  const { data: appUser, isLoading: userLoading, isError, refetch } = useCurrentUser();
+  const { data: appUser, isLoading: userLoading } = useCurrentUser();
   const location = useLocation();
 
   if (authLoading || (user && userLoading)) {
@@ -21,19 +22,22 @@ export default function RouteGuard() {
 
   if (!user) {
     if (PUBLIC_PATHS.includes(location.pathname)) return <Outlet />;
-    return <Navigate to="/entry" replace />;
+    return <Navigate to="/login" replace />;
   }
 
-  if (isError || !appUser) return <div className="p-6"><p>Could not load your account.</p><button onClick={() => refetch()}>Try again</button></div>;
+  if (!appUser) return null;
 
   if (appUser.rejected_at) {
-    return <Navigate to="/pending" replace />;
+    supabase.auth.signOut();
+    toast.error("Your application was not approved at this time.");
+    return <Navigate to="/login" replace />;
   }
 
   // Always-allowed routes for any authenticated user
   if (ALWAYS_ALLOWED_AUTHENTICATED.includes(location.pathname)) return <Outlet />;
 
   const isPaid = appUser.payment_status === "paid";
+  const interviewDone = appUser.interview_completed;
 
   // Admin routes
   if (location.pathname.startsWith("/admin")) {
@@ -44,8 +48,13 @@ export default function RouteGuard() {
     return <Outlet />;
   }
 
-  // Only activated invitees and existing paid members enter the member app.
-  if (!isPaid) return <Navigate to="/pending" replace />;
+  // State 1: pre-payment
+  if (!isPaid) {
+    if (interviewDone && location.pathname === "/payment") return <Outlet />;
+    if (location.pathname === "/interview") return <Outlet />;
+    if (interviewDone) return <Navigate to="/payment" replace />;
+    return <Navigate to="/interview" replace />;
+  }
 
   // State 2 & 3: paid members
   if (PUBLIC_PATHS.includes(location.pathname) || ["/interview", "/payment"].includes(location.pathname)) {

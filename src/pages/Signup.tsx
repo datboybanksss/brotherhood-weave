@@ -1,8 +1,7 @@
-import PublicNavigation from "@/components/PublicNavigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useNavigate, Link, Navigate, useSearchParams } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -31,35 +30,30 @@ type FormData = z.infer<typeof schema>;
 
 export default function Signup() {
   const navigate = useNavigate();
-  const [params] = useSearchParams();
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { terms_accepted: false },
   });
   const termsAccepted = watch("terms_accepted");
 
-  if (params.get("kind") !== "existing" && params.get("kind") !== "new") return <Navigate to="/entry" replace />;
-
   const onSubmit = async (data: FormData) => {
     console.log("Signing up:", data.email);
-    sessionStorage.setItem("membership-choice", params.get("kind")!);
-    const { data: result, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
-      options: { data: { full_name: data.full_name, membership_request_kind: params.get("kind") } },
+      options: { data: { full_name: data.full_name } },
     });
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success(result.session ? "Account created. Founder approval is required." : "Check your email to confirm your account, then log in.");
-    navigate(result.session ? "/pending" : "/login");
+    toast.success("Account created!");
+    navigate("/interview");
   };
 
   return (
-    <div className="min-h-screen bg-background"><PublicNavigation /><div className="flex items-center justify-center p-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-sm space-y-6">
-        <Link to="/apply" className="block text-center text-sm text-brand-royal underline">Apply for membership</Link>
         <h1 className="text-2xl font-bold text-foreground text-center">Join Family Ties</h1>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
@@ -105,7 +99,7 @@ export default function Signup() {
           Already a member? <Link to="/login" className="text-primary underline">Log in</Link>
         </p>
         <AuthDivider />
-        <div onClickCapture={() => sessionStorage.setItem("membership-choice", params.get("kind")!)}><GoogleSignInButton disabled={!termsAccepted} /></div>
+        <GoogleSignInButton disabled={!termsAccepted} />
         {!termsAccepted && (
           <p className="text-center text-xs leading-5 text-muted-foreground">
             Agree to the Terms and Privacy Policy to continue with Google.
@@ -120,7 +114,6 @@ export default function Signup() {
           </Link>
         </div>
       </div>
-    </div>
     </div>
   );
 }

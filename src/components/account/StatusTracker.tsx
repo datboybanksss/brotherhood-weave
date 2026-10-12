@@ -11,7 +11,7 @@ export default function StatusTracker({ user }: { user: AppUser }) {
 
   const step2Status = user.interview_booked_at ? "complete" as const : "action" as const;
   const step2Subtitle = user.interview_booked_at
-    ? `Booking acknowledged ${format(new Date(user.interview_booked_at), "PPP")}`
+    ? `Booked for ${format(new Date(user.interview_booked_at), "PPP")}`
     : "Book your interview to continue";
   const step2Action = !user.interview_booked_at ? (
     <Button size="sm" variant="outline" onClick={() => navigate("/interview")}>Book Interview</Button>
@@ -20,7 +20,7 @@ export default function StatusTracker({ user }: { user: AppUser }) {
   const step3Status = user.interview_completed ? "complete" as const : "action" as const;
   const step3Subtitle = user.interview_completed
     ? "Approved — complete your payment to join."
-    : "We'll review after your interview. Check your application page for a decision.";
+    : "We'll review after your interview. You'll hear back within 24 hours.";
   const step3Action = user.interview_completed ? (
     <Button size="sm" onClick={() => navigate("/payment")}>Complete Payment</Button>
   ) : undefined;
@@ -28,7 +28,6 @@ export default function StatusTracker({ user }: { user: AppUser }) {
   return (
     <div className="rounded-lg border border-border p-4">
       <h2 className="text-sm font-semibold text-foreground mb-3">Application Status</h2>
-      <Button variant="outline" size="sm" className="mb-4" onClick={() => navigate("/apply")}>View application and next steps</Button>
       <StatusStep title="Account created" subtitle={step1Subtitle} status="complete" />
       <StatusStep title="Interview booked" subtitle={step2Subtitle} status={step2Status} action={step2Action} />
       <StatusStep title="Approval" subtitle={step3Subtitle} status={step3Status} action={step3Action} isLast />

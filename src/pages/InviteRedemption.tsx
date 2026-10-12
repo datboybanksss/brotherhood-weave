@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import AuthDivider from "@/components/auth/AuthDivider";
 
 type ValidateResult =
   | { status: "valid"; invitation: { email: string; full_name: string; intended_tier: string; expires_at: string } }
@@ -16,7 +18,6 @@ type ValidateResult =
 const schema = z.object({
   password: z.string().min(6, "Minimum 6 characters").max(72),
   confirm: z.string(),
-  terms: z.boolean().refine(Boolean, "Please accept the terms and privacy policy"),
 }).refine((d) => d.password === d.confirm, { message: "Passwords do not match", path: ["confirm"] });
 
 type FormData = z.infer<typeof schema>;
@@ -57,7 +58,11 @@ export default function InviteRedemption() {
       return;
     }
     toast.success("Welcome to the brotherhood!");
-    navigate("/app", { replace: true });
+    navigate("/home", { replace: true });
+  };
+
+  const handleGoogleClick = () => {
+    if (token) sessionStorage.setItem("pending_invite_token", token);
   };
 
   if (state.status === "loading") {
@@ -109,13 +114,14 @@ export default function InviteRedemption() {
             <Input id="confirm" type="password" {...register("confirm")} className="text-base" />
             {errors.confirm && <p className="text-sm text-destructive">{errors.confirm.message}</p>}
           </div>
-          <label className="flex gap-3 text-sm"><input type="checkbox" {...register("terms")} /> <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer" className="underline">Terms</a> and acknowledge the <a href="/privacy" target="_blank" rel="noreferrer" className="underline">Privacy Policy</a>.</span></label>
-          {errors.terms && <p role="alert" className="text-sm text-destructive">{errors.terms.message}</p>}
           <Button type="submit" className="w-full min-h-[48px]" disabled={isSubmitting}>
             {isSubmitting ? "Joining..." : "Join the brotherhood"}
           </Button>
         </form>
-
+        <AuthDivider />
+        <div onClickCapture={handleGoogleClick}>
+          <GoogleSignInButton label="Continue with Google" />
+        </div>
       </div>
     </div>
   );

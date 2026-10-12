@@ -14,7 +14,6 @@ export interface AppUser {
   interview_booked_at: string | null;
   interview_completed: boolean;
   is_admin: boolean;
-  membership_request_kind: "existing" | "new" | null;
   rejected_at: string | null;
   created_at: string;
   onboarded_at: string | null;

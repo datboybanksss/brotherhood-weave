@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 
 export interface PendingApplicant {
-  membership_request_kind: "existing" | "new" | null;
   id: string;
   full_name: string;
   email: string;
@@ -17,14 +16,14 @@ export function usePendingApprovals() {
     queryFn: async (): Promise<PendingApplicant[]> => {
       const { data, error } = await supabase
         .from("users")
-        .select("id, full_name, email, avatar_url, created_at, interview_booked_at, membership_request_kind")
+        .select("id, full_name, email, avatar_url, created_at, interview_booked_at")
         .eq("payment_status", "pending")
         .eq("interview_completed", false)
         .eq("is_admin", false)
         .is("rejected_at", null)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return data as unknown as PendingApplicant[];
+      return data as PendingApplicant[];
     },
     staleTime: 10_000,
   });
