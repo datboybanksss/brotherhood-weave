@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import RouteGuard from "@/components/RouteGuard";
 import PaidLayout from "@/components/PaidLayout";
+import MembershipEntry from "@/pages/MembershipEntry";
+import PendingMembership from "@/pages/PendingMembership";
 import Apply from "@/pages/Apply";
 import Signup from "@/pages/Signup";
 import Login from "@/pages/Login";
@@ -52,6 +54,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            <Route path="/entry" element={<MembershipEntry />} />
+            <Route path="/pending" element={<PendingMembership />} />
             <Route path="/apply" element={<Apply />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/invite/:token" element={<InviteRedemption />} />
@@ -87,6 +91,7 @@ const App = () => (
               <Route path="/admin/events/new" element={<EventForm />} />
               <Route path="/admin/events/:id/edit" element={<EventForm />} />
               <Route element={<PaidLayout />}>
+                <Route path="/app" element={<Home />} />
                 <Route path="/home" element={<Home />} />
                 <Route path="/library" element={<Library />} />
                 <Route path="/library/module/:slug" element={<ModuleDetail />} />

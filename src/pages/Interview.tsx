@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import UserDropdownMenu from "@/components/UserDropdownMenu";
 
-const CALENDLY_URL = "https://calendly.com/kgosinoko11/interview";
+const CALENDLY_URL = "https://calendly.com/office-familyties/30min";
 
 export default function Interview() {
   const { user } = useAuth();

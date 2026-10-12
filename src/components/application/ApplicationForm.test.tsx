@@ -2,9 +2,9 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, it, expect, vi } from "vitest";
 import ApplicationForm from "./ApplicationForm";
-import { submitApplication } from "@/api/applications";
-vi.mock("@/api/applications", async (original) => ({ ...await original<typeof import("@/api/applications")>(), submitApplication: vi.fn() }));
-function mount() { return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { mutations: { retry: false } } })}><ApplicationForm userId="applicant-1" /></QueryClientProvider>); }
+import { submitGuestApplication } from "@/api/guest-applications";
+vi.mock("@/api/guest-applications", async (original) => ({ ...await original<typeof import("@/api/guest-applications")>(), submitGuestApplication: vi.fn() }));
+function mount() { return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { mutations: { retry: false } } })}><ApplicationForm onSubmitted={() => {}} /></QueryClientProvider>); }
 describe("membership application", () => {
   it("keeps empty answers on the first step", async () => {
     mount(); fireEvent.click(screen.getByRole("button", { name: "Continue" }));
@@ -12,8 +12,10 @@ describe("membership application", () => {
     expect(screen.getByRole("heading", { name: "Let's start with you." })).toBeInTheDocument();
   });
   it("requires review before submission and preserves answers after a failed save", async () => {
-    vi.mocked(submitApplication).mockRejectedValueOnce(new Error("offline"));
-    mount(); fireEvent.change(screen.getByLabelText("Where are you based?"), { target: { value: "Johannesburg" } });
+    vi.mocked(submitGuestApplication).mockRejectedValueOnce(new Error("offline"));
+    mount(); fireEvent.change(screen.getByLabelText("Full name"), { target: { value: "Sample Applicant" } });
+    fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "sample@example.com" } });
+    fireEvent.change(screen.getByLabelText("Where are you based?"), { target: { value: "Johannesburg" } });
     fireEvent.change(screen.getByLabelText("What do you do or study?"), { target: { value: "Finance student" } });
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     await screen.findByRole("heading", { name: "What brings you here?" });
@@ -22,9 +24,9 @@ describe("membership application", () => {
     fireEvent.click(screen.getByRole("checkbox"));
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     await screen.findByRole("heading", { name: "A final look." });
-    expect(submitApplication).not.toHaveBeenCalled();
+    expect(submitGuestApplication).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Submit application" }));
-    await waitFor(() => expect(submitApplication).toHaveBeenCalledWith("applicant-1", expect.objectContaining({ city: "Johannesburg", commitment: true })));
+    await waitFor(() => expect(submitGuestApplication).toHaveBeenCalledWith(expect.objectContaining({ city: "Johannesburg", commitment: true })));
     expect(await screen.findByText(/We couldn't submit/)).toBeInTheDocument();
     expect(screen.getByText("Johannesburg")).toBeInTheDocument();
   });

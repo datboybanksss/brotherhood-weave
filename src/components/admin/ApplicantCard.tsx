@@ -20,7 +20,7 @@ export default function ApplicantCard({ applicant }: { applicant: PendingApplica
   const [approveOpen, setApproveOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
   const application = useApplication(applicant.id);
-  const canApprove = !!applicant.interview_booked_at;
+  const canApprove = true;
 
   const approveMut = useMutation({
     mutationFn: () => approveApplicant(applicant.id),
@@ -28,7 +28,7 @@ export default function ApplicantCard({ applicant }: { applicant: PendingApplica
     onSuccess: () => {
       console.log(`[ADMIN APPROVAL] ${user?.email} approved ${applicant.email} at ${new Date().toISOString()}`);
       qc.invalidateQueries({ queryKey: ["pending-approvals"] });
-      toast.success(`${applicant.full_name} approved. They can now complete payment.`);
+      toast.success(`${applicant.full_name} approved. They now have member access.`);
       setApproveOpen(false);
     },
   });
@@ -50,10 +50,11 @@ export default function ApplicantCard({ applicant }: { applicant: PendingApplica
       <div className="flex items-center gap-3">
       <img src={avatarUrl} alt={applicant.full_name} className="h-10 w-10 rounded-full bg-muted" />
       <div className="flex-1 min-w-0">
+        <p className="text-xs text-brand-royal">{applicant.membership_request_kind === "existing" ? "Existing member verification" : "New applicant"}</p>
         <p className="font-semibold text-sm text-foreground truncate">{applicant.full_name}</p>
         <p className="text-xs text-muted-foreground truncate">{applicant.email}</p>
         <p className="text-xs text-muted-foreground">Applied {formatDistanceToNow(new Date(applicant.created_at), { addSuffix: true })}</p>
-        {canApprove ? (
+        {applicant.interview_booked_at ? (
           <p className="text-xs text-green-600">✓ Interview booked {format(new Date(applicant.interview_booked_at!), "MMM d")}</p>
         ) : (
           <p className="text-xs text-amber-500">● Interview not yet booked</p>

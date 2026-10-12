@@ -1,7 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useApplication } from "@/hooks/useApplication";
 import { toast } from "sonner";
 
 const PUBLIC_PATHS = ["/login", "/signup"];
@@ -9,9 +8,8 @@ const ALWAYS_ALLOWED_AUTHENTICATED = ["/account"];
 
 export default function RouteGuard() {
   const { user, loading: authLoading } = useAuth();
-  const { data: appUser, isLoading: userLoading } = useCurrentUser();
+  const { data: appUser, isLoading: userLoading, isError, refetch } = useCurrentUser();
   const location = useLocation();
-  const application = useApplication(user?.id);
 
   if (authLoading || (user && userLoading)) {
     return (
@@ -23,20 +21,19 @@ export default function RouteGuard() {
 
   if (!user) {
     if (PUBLIC_PATHS.includes(location.pathname)) return <Outlet />;
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/entry" replace />;
   }
 
-  if (!appUser) return null;
+  if (isError || !appUser) return <div className="p-6"><p>Could not load your account.</p><button onClick={() => refetch()}>Try again</button></div>;
 
   if (appUser.rejected_at) {
-    return <Navigate to="/apply" replace />;
+    return <Navigate to="/pending" replace />;
   }
 
   // Always-allowed routes for any authenticated user
   if (ALWAYS_ALLOWED_AUTHENTICATED.includes(location.pathname)) return <Outlet />;
 
   const isPaid = appUser.payment_status === "paid";
-  const interviewDone = appUser.interview_completed;
 
   // Admin routes
   if (location.pathname.startsWith("/admin")) {
@@ -47,19 +44,8 @@ export default function RouteGuard() {
     return <Outlet />;
   }
 
-  // Collect a real application before the interview; approved and paid members keep access.
-  if (!isPaid && !interviewDone) {
-    if (application.isLoading) return <p className="p-6">Loading application…</p>;
-    if (application.isError || !application.data) return <Navigate to="/apply" replace />;
-  }
-
-  // State 1: pre-payment
-  if (!isPaid) {
-    if (interviewDone && location.pathname === "/payment") return <Outlet />;
-    if (location.pathname === "/interview") return <Outlet />;
-    if (interviewDone) return <Navigate to="/payment" replace />;
-    return <Navigate to="/interview" replace />;
-  }
+  // Only activated invitees and existing paid members enter the member app.
+  if (!isPaid) return <Navigate to="/pending" replace />;
 
   // State 2 & 3: paid members
   if (PUBLIC_PATHS.includes(location.pathname) || ["/interview", "/payment"].includes(location.pathname)) {

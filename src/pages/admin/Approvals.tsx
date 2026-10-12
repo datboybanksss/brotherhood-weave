@@ -1,3 +1,4 @@
+import GuestApplications from "@/components/admin/GuestApplications";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -23,7 +24,8 @@ export default function Approvals() {
         {count > 0 && <Badge variant="secondary">{count}</Badge>}
       </div>
 
-      <p className="text-sm text-muted-foreground">Read each introduction, have the conversation, then record your decision.</p>
+      <GuestApplications />
+      <h2 className="pt-6 font-semibold">Account approval requests</h2>
       <Input aria-label="Search applicants" placeholder="Search by name or email" value={search} onChange={e => setSearch(e.target.value)} />
       {isError && <div role="alert"><p>Could not load applicants.</p><Button variant="outline" onClick={() => refetch()}>Try again</Button></div>}
       {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
