@@ -1,3 +1,4 @@
+import PublicNavigation from "@/components/PublicNavigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -38,7 +39,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="min-h-screen bg-background"><PublicNavigation /><div className="flex items-center justify-center p-4 py-12">
       <div className="w-full max-w-sm space-y-6">
         <h1 className="text-2xl font-bold text-foreground text-center">Family Ties</h1>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -57,7 +58,7 @@ export default function Login() {
           </Button>
         </form>
         <p className="text-sm text-center text-muted-foreground">
-          New here? <Link to="/signup" className="text-primary underline">Sign up</Link>
+          New here? <Link to="/entry" className="text-primary underline">Sign up</Link> · <Link to="/apply" className="text-primary underline">Apply</Link>
         </p>
         <AuthDivider />
         <GoogleSignInButton />
@@ -81,6 +82,7 @@ export default function Login() {
           </Link>
         </div>
       </div>
+    </div>
     </div>
   );
 }
